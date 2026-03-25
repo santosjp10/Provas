@@ -671,7 +671,7 @@ tr:hover td { background: var(--bg3); }
         <span class="icon">✅</span> Corrigir Prova
       </div>
       <div class="nav-item" onclick="showPage('scanner')" id="nav-scanner">
-        <span class="icon">📷</span> Scanner QR Code
+        <span class="icon">🤖</span> Correção OMR
       </div>
       <div class="nav-item" onclick="showPage('resultados')" id="nav-resultados">
         <span class="icon">📈</span> Resultados
@@ -724,7 +724,7 @@ tr:hover td { background: var(--bg3); }
           <div style="display:flex;flex-direction:column;gap:10px;">
             <button class="btn btn-primary" onclick="showPage('banco')">➕ Nova Questão</button>
             <button class="btn btn-secondary" onclick="showPage('montagem')">🔧 Montar Prova</button>
-            <button class="btn btn-secondary" onclick="showPage('scanner')">📷 Scanner QR Code</button>
+            <button class="btn btn-secondary" onclick="showPage('scanner')">🤖 Correção Automática OMR</button>
             <button class="btn btn-secondary" onclick="showPage('correcao')">✅ Corrigir Manual</button>
           </div>
         </div>
@@ -891,88 +891,103 @@ tr:hover td { background: var(--bg3); }
       <div id="resultado-box" style="display:none;"></div>
     </div>
 
-    <!-- SCANNER QR CODE — página dedicada -->
+    <!-- CORREÇÃO AUTOMÁTICA OMR — página dedicada -->
     <div class="page" id="page-scanner">
 
-      <!-- Estado 0: aguardando leitura -->
+      <!-- ═══ PASSO 0: Identificação da Prova ═══ -->
       <div id="scanner-step-0">
         <div class="grid-2" style="align-items:start;">
 
-          <!-- Coluna esquerda: câmera -->
-          <div class="card">
-            <div class="card-title">📷 Leitura do QR Code</div>
-            <p style="font-size:0.82rem;color:var(--text2);margin-bottom:14px;">
-              Aponte a câmera para o QR Code impresso no <strong>cabeçalho da prova</strong> do aluno. A identificação é automática.
-            </p>
+          <!-- Coluna esquerda: seleção da prova -->
+          <div>
+            <div class="card">
+              <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+                Identificar Prova
+              </div>
+              <p style="font-size:0.82rem;color:var(--text2);margin-bottom:16px;">
+                Informe o <strong>número ou código da prova</strong>. O sistema carregará automaticamente o gabarito correto.
+              </p>
 
-            <div id="sc-video-wrap" style="position:relative;background:#000;border-radius:10px;overflow:hidden;margin-bottom:14px;aspect-ratio:4/3;">
-              <video id="sc-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
-              <canvas id="sc-canvas" style="display:none;"></canvas>
-
-              <!-- Viewfinder overlay -->
-              <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
-                <div id="sc-frame" style="position:relative;width:200px;height:200px;">
-                  <!-- corners -->
-                  <div style="position:absolute;top:0;left:0;width:28px;height:28px;border-top:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:3px 0 0 0;"></div>
-                  <div style="position:absolute;top:0;right:0;width:28px;height:28px;border-top:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 3px 0 0;"></div>
-                  <div style="position:absolute;bottom:0;left:0;width:28px;height:28px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:0 0 0 3px;"></div>
-                  <div style="position:absolute;bottom:0;right:0;width:28px;height:28px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 0 3px 0;"></div>
-                  <!-- scan line -->
-                  <div id="sc-scanline" style="display:none;position:absolute;left:10px;right:10px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scanline 1.6s ease-in-out infinite;"></div>
+              <!-- Busca por código -->
+              <div class="form-group">
+                <label class="form-label">Código / Número da Prova</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="text" class="form-control" id="sc-cod-input"
+                    placeholder="Ex: BIO-2026-01"
+                    oninput="scFiltrarProvas()"
+                    onkeydown="if(event.key==='Enter') scConfirmarProva()">
+                  <button class="btn btn-primary" onclick="scConfirmarProva()" style="white-space:nowrap;">Confirmar →</button>
                 </div>
               </div>
 
-              <!-- Status overlay -->
-              <div id="sc-cam-placeholder" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);color:#fff;">
-                <div style="font-size:3rem;margin-bottom:8px;">📷</div>
-                <div style="font-size:0.82rem;color:#ccc;">Câmera não iniciada</div>
+              <!-- Lista de provas disponíveis -->
+              <div class="form-group">
+                <label class="form-label">Ou selecione na lista</label>
+                <div id="sc-provas-lista" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
               </div>
 
-              <!-- Success flash -->
-              <div id="sc-success-flash" style="display:none;position:absolute;inset:0;background:rgba(78,205,196,0.3);border-radius:10px;pointer-events:none;animation:flash 0.4s ease-out forwards;"></div>
+              <!-- Erro -->
+              <div id="sc-id-erro" style="display:none;font-size:0.8rem;color:var(--danger);padding:8px 12px;background:rgba(255,107,107,0.1);border-radius:6px;border:1px solid rgba(255,107,107,0.3);margin-top:4px;"></div>
             </div>
 
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-              <button class="btn btn-primary" id="sc-btn-start" onclick="scStart()">📷 Iniciar Câmera</button>
-              <button class="btn btn-danger btn-sm" id="sc-btn-stop" style="display:none;" onclick="scStop()">⏹ Parar</button>
-              <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
-                🖼 Enviar Foto
-                <input type="file" accept="image/*" style="display:none;" onchange="scUploadImage(this)">
-              </label>
-            </div>
-
-            <div id="sc-status" style="min-height:22px;font-size:0.8rem;padding:6px 10px;border-radius:6px;background:var(--bg3);color:var(--text2);">
-              Aguardando câmera…
+            <!-- Alternativa: QR Code -->
+            <div class="card" style="border-style:dashed;">
+              <div class="card-title">📷 Alternativa: Ler QR Code</div>
+              <p style="font-size:0.8rem;color:var(--text2);margin-bottom:12px;">Se a prova tem QR Code no cabeçalho, escaneie para identificação automática.</p>
+              <div id="sc-video-wrap" style="display:none;position:relative;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;aspect-ratio:16/9;">
+                <video id="sc-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                <canvas id="sc-canvas" style="display:none;"></canvas>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                  <div style="position:relative;width:160px;height:160px;">
+                    <div style="position:absolute;top:0;left:0;width:22px;height:22px;border-top:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:3px 0 0 0;"></div>
+                    <div style="position:absolute;top:0;right:0;width:22px;height:22px;border-top:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 3px 0 0;"></div>
+                    <div style="position:absolute;bottom:0;left:0;width:22px;height:22px;border-bottom:3px solid var(--accent);border-left:3px solid var(--accent);border-radius:0 0 0 3px;"></div>
+                    <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;border-bottom:3px solid var(--accent);border-right:3px solid var(--accent);border-radius:0 0 3px 0;"></div>
+                    <div id="sc-scanline" style="display:none;position:absolute;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:scanline 1.6s ease-in-out infinite;"></div>
+                  </div>
+                </div>
+                <div id="sc-success-flash" style="display:none;position:absolute;inset:0;background:rgba(78,205,196,0.3);border-radius:8px;pointer-events:none;animation:flash 0.4s ease-out forwards;"></div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-secondary btn-sm" id="sc-btn-start" onclick="scStart()">📷 Iniciar Câmera</button>
+                <button class="btn btn-danger btn-sm" id="sc-btn-stop" style="display:none;" onclick="scStop()">⏹ Parar</button>
+                <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
+                  🖼 Foto do QR
+                  <input type="file" accept="image/*" style="display:none;" onchange="scUploadImage(this)">
+                </label>
+              </div>
+              <div id="sc-status" style="min-height:20px;font-size:0.78rem;margin-top:8px;color:var(--text2);"></div>
             </div>
           </div>
 
-          <!-- Coluna direita: info + fila -->
+          <!-- Coluna direita: como funciona + fila -->
           <div>
             <div class="card">
-              <div class="card-title">ℹ️ Como funciona</div>
-              <div style="font-size:0.82rem;color:var(--text2);line-height:1.7;">
-                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
-                  <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
-                  <span>Inicie a câmera e aponte para o QR Code no cabeçalho da prova.</span>
+              <div class="card-title">🤖 Como funciona a correção OMR</div>
+              <div style="font-size:0.82rem;color:var(--text2);line-height:1.8;">
+                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
+                  <span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</span>
+                  <span><strong>Informe o número da prova</strong> — o sistema carrega o gabarito da versão correspondente.</span>
                 </div>
-                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
-                  <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
-                  <span>O sistema identifica automaticamente a prova e a versão.</span>
+                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
+                  <span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</span>
+                  <span><strong>Fotografe a folha de respostas</strong> preenchida pelo aluno usando câmera ou envio de imagem.</span>
                 </div>
-                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
-                  <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
-                  <span>Informe os dados do aluno e marque as respostas nas bolhas.</span>
+                <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;">
+                  <span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</span>
+                  <span><strong>IA analisa as marcações</strong> automaticamente e preenche as respostas detectadas.</span>
                 </div>
                 <div style="display:flex;gap:10px;align-items:flex-start;">
-                  <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</span>
-                  <span>Clique em <strong>Corrigir</strong> — o resultado é calculado e salvo automaticamente.</span>
+                  <span style="width:24px;height:24px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">4</span>
+                  <span><strong>Revise e confirme</strong> — nota e resultado são calculados e salvos automaticamente.</span>
                 </div>
               </div>
             </div>
 
             <div class="card">
               <div class="card-title">📋 Fila de Correção — <span id="sc-fila-count">0</span> corrigido(s)</div>
-              <div id="sc-fila-list" style="max-height:220px;overflow-y:auto;">
+              <div id="sc-fila-list" style="max-height:240px;overflow-y:auto;">
                 <div style="font-size:0.8rem;color:var(--text2);padding:12px 0;text-align:center;">Nenhuma correção realizada nesta sessão.</div>
               </div>
               <div style="margin-top:10px;display:flex;gap:8px;">
@@ -985,64 +1000,118 @@ tr:hover td { background: var(--bg3); }
         </div>
       </div>
 
-      <!-- Estado 1: prova identificada — formulário de correção -->
+      <!-- ═══ PASSO 1: OMR + Dados + Resultado ═══ -->
       <div id="scanner-step-1" style="display:none;">
 
-        <!-- Banner prova identificada -->
-        <div id="sc-prova-banner" style="background:linear-gradient(135deg,rgba(78,205,196,0.15),rgba(232,197,71,0.1));border:1.5px solid var(--success);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <div style="width:44px;height:44px;border-radius:50%;background:var(--success);color:#0a1a18;font-family:'DM Serif Display',serif;font-size:1.4rem;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;" id="sc-versao-badge">?</div>
+        <!-- Banner: prova identificada -->
+        <div id="sc-prova-banner" style="background:linear-gradient(135deg,rgba(78,205,196,0.12),rgba(232,197,71,0.08));border:1.5px solid var(--success);border-radius:10px;padding:14px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--success);color:#0a1a18;font-family:'DM Serif Display',serif;font-size:1.5rem;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;" id="sc-versao-badge">?</div>
           <div style="flex:1;min-width:160px;">
-            <div style="font-size:0.9rem;font-weight:600;" id="sc-prova-titulo">—</div>
+            <div style="font-size:0.95rem;font-weight:600;" id="sc-prova-titulo">—</div>
             <div style="font-size:0.72rem;color:var(--text2);font-family:'DM Mono',monospace;" id="sc-prova-meta">—</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <span style="font-size:0.72rem;background:rgba(78,205,196,0.2);color:var(--success);padding:3px 10px;border-radius:20px;font-family:'DM Mono',monospace;font-weight:600;">✓ QR Validado</span>
-            <button class="btn btn-secondary btn-sm" onclick="scNovaCorrecao()">🔄 Nova leitura</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span style="font-size:0.72rem;background:rgba(78,205,196,0.2);color:var(--success);padding:3px 12px;border-radius:20px;font-family:'DM Mono',monospace;font-weight:600;">✓ Prova Identificada</span>
+            <button class="btn btn-secondary btn-sm" onclick="scNovaCorrecao()">🔄 Trocar prova</button>
           </div>
         </div>
 
         <div class="grid-2" style="align-items:start;">
 
-          <!-- Dados do aluno -->
-          <div class="card">
-            <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-              <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;">1</span>
-              Dados do Aluno
-            </div>
-            <div class="form-group">
-              <label class="form-label">Nome Completo</label>
-              <input type="text" class="form-control" id="sc-nome" placeholder="Nome do aluno" autofocus>
-            </div>
-            <div class="grid-2">
-              <div class="form-group">
-                <label class="form-label">Matrícula</label>
-                <input type="text" class="form-control" id="sc-matricula">
+          <!-- Coluna A: Dados do aluno + OMR -->
+          <div>
+            <!-- Dados do aluno -->
+            <div class="card">
+              <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;">1</span>
+                Dados do Aluno
               </div>
               <div class="form-group">
-                <label class="form-label">Turma / Curso</label>
-                <input type="text" class="form-control" id="sc-turma">
+                <label class="form-label">Nome Completo</label>
+                <input type="text" class="form-control" id="sc-nome" placeholder="Nome do aluno" autofocus>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Matrícula</label>
+                  <input type="text" class="form-control" id="sc-matricula">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Turma / Curso</label>
+                  <input type="text" class="form-control" id="sc-turma">
+                </div>
+              </div>
+            </div>
+
+            <!-- OMR: fotografar folha -->
+            <div class="card" style="border:1.5px solid var(--accent);">
+              <div class="card-title" style="display:flex;align-items:center;gap:8px;">
+                <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;">2</span>
+                Reconhecimento Automático — OMR
+                <span style="margin-left:auto;font-size:0.68rem;background:rgba(232,197,71,0.2);color:var(--accent);padding:2px 8px;border-radius:10px;font-family:'DM Mono',monospace;">IA</span>
+              </div>
+              <p style="font-size:0.8rem;color:var(--text2);margin-bottom:12px;">
+                Fotografe a <strong>folha de respostas preenchida</strong>. A IA detecta automaticamente as alternativas marcadas e preenche as bolhas abaixo.
+              </p>
+
+              <!-- Câmera OMR -->
+              <div id="omr-cam-wrap" style="display:none;position:relative;background:#000;border-radius:8px;overflow:hidden;margin-bottom:10px;aspect-ratio:4/3;max-height:280px;">
+                <video id="omr-video" autoplay playsinline style="width:100%;height:100%;object-fit:cover;display:block;"></video>
+                <canvas id="omr-canvas" style="display:none;"></canvas>
+                <!-- guia de enquadramento -->
+                <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+                  <div style="width:85%;height:85%;border:2px dashed rgba(232,197,71,0.7);border-radius:6px;display:flex;align-items:center;justify-content:center;">
+                    <span style="font-size:0.72rem;color:rgba(232,197,71,0.9);background:rgba(0,0,0,0.5);padding:4px 10px;border-radius:4px;">Enquadre a folha de respostas</span>
+                  </div>
+                </div>
+                <div style="position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:10px;">
+                  <button class="btn btn-primary btn-sm" onclick="omrCapture()">📸 Capturar</button>
+                  <button class="btn btn-danger btn-sm" onclick="omrStopCam()">✕ Cancelar</button>
+                </div>
+              </div>
+
+              <!-- Preview da foto capturada -->
+              <div id="omr-preview-wrap" style="display:none;margin-bottom:10px;">
+                <img id="omr-preview-img" style="width:100%;border-radius:8px;border:1px solid var(--border);max-height:220px;object-fit:contain;" alt="Folha capturada">
+                <div style="display:flex;gap:8px;margin-top:8px;">
+                  <button class="btn btn-secondary btn-sm" onclick="omrReset()" style="flex:1;">🔄 Nova foto</button>
+                  <button class="btn btn-primary btn-sm" id="omr-analisar-btn" onclick="omrAnalisar()" style="flex:1;">🔍 Analisar com IA</button>
+                </div>
+              </div>
+
+              <!-- Status OMR -->
+              <div id="omr-status" style="display:none;font-size:0.78rem;padding:8px 12px;border-radius:6px;background:var(--bg3);margin-bottom:10px;line-height:1.5;"></div>
+
+              <!-- Botões iniciais -->
+              <div id="omr-btns" style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-primary btn-sm" onclick="omrStartCam()" style="flex:1;">
+                  📷 Usar Câmera
+                </button>
+                <label class="btn btn-secondary btn-sm" style="flex:1;cursor:pointer;justify-content:center;">
+                  🖼 Enviar Foto
+                  <input type="file" accept="image/*" style="display:none;" onchange="omrUploadFoto(this)">
+                </label>
               </div>
             </div>
           </div>
 
-          <!-- Respostas -->
-          <div class="card">
+          <!-- Coluna B: grade de respostas -->
+          <div class="card" style="position:sticky;top:16px;">
             <div class="card-title" style="display:flex;align-items:center;gap:8px;">
-              <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;">2</span>
-              Respostas do Aluno
+              <span style="width:20px;height:20px;border-radius:50%;background:var(--accent);color:#1a1a10;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;">3</span>
+              Respostas Detectadas
               <span style="margin-left:auto;font-size:0.7rem;color:var(--text2);" id="sc-resp-counter">0 / 0 marcadas</span>
             </div>
+            <p style="font-size:0.76rem;color:var(--text2);margin-bottom:10px;">Bolhas preenchidas pela IA. Clique para corrigir manualmente se necessário.</p>
             <div id="sc-respostas-grid"></div>
+
+            <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
+              <button class="btn btn-secondary" onclick="scNovaCorrecao()" style="flex:1;">✕ Cancelar</button>
+              <button class="btn btn-success" onclick="scCorrigir()" style="flex:2;font-size:0.88rem;padding:10px 16px;">
+                ✅ Corrigir Automaticamente
+              </button>
+            </div>
           </div>
 
-        </div>
-
-        <!-- Ação -->
-        <div style="display:flex;gap:12px;margin-top:4px;justify-content:flex-end;flex-wrap:wrap;">
-          <button class="btn btn-secondary" onclick="scNovaCorrecao()">✕ Cancelar</button>
-          <button class="btn btn-success" onclick="scCorrigir()" style="min-width:200px;font-size:0.9rem;padding:10px 24px;">
-            ✅ Corrigir Automaticamente
-          </button>
         </div>
 
         <!-- Resultado inline -->
@@ -1240,7 +1309,7 @@ function showPage(page) {
   const titles = {
     dashboard:'Dashboard', banco:'Banco de Questões', importar:'Importar CSV',
     montagem:'Montar Prova', versoes:'Versões Geradas', correcao:'Correção Manual',
-    scanner:'Scanner QR Code', resultados:'Resultados', exportar:'Exportar Dados'
+    scanner:'Correção Automática OMR', resultados:'Resultados', exportar:'Exportar Dados'
   };
   document.getElementById('topbar-title').textContent = titles[page] || page;
   document.getElementById('topbar-actions').innerHTML = '';
@@ -2179,30 +2248,125 @@ function exibirResultado(p, v, nome, matricula, turma, respostas, boxId) {
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ===================== SCANNER QR CODE — página dedicada =====================
+// ===================== CORREÇÃO AUTOMÁTICA OMR =====================
 let scStream = null;
 let scScanActive = false;
 let scDetected = null;   // { prova, versao }
-let scFila = [];         // correções feitas nesta sessão
+let scFila = [];
 let scRafId = null;
+let omrStream = null;
+let omrImageBase64 = null;
 
+// ── Inicialização da página ──────────────────────────────────────
 function scInitPage() {
-  // Reset to step 0 if no detected prova, or restore step 1 if mid-flow
-  if (!scDetected) {
-    scShowStep(0);
-  }
+  if (!scDetected) scShowStep(0);
+  scRenderProvasList();
   scRenderFila();
 }
 
 function scShowStep(n) {
   document.getElementById('scanner-step-0').style.display = n === 0 ? 'block' : 'none';
   document.getElementById('scanner-step-1').style.display = n === 1 ? 'block' : 'none';
-  if (n === 0) {
-    document.getElementById('sc-resultado').style.display = 'none';
-    scUpdateStatus('Aguardando câmera…', 'neutral');
+}
+
+// ── Passo 0: filtrar lista de provas ────────────────────────────
+function scRenderProvasList(filtro = '') {
+  const el = document.getElementById('sc-provas-lista');
+  if (!el) return;
+  const provas = DB.provas;
+  if (provas.length === 0) {
+    el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);padding:10px;text-align:center;">Nenhuma prova cadastrada.</div>';
+    return;
+  }
+  const busca = filtro.toLowerCase();
+  const filtradas = provas.filter(p =>
+    !busca ||
+    p.codigo.toLowerCase().includes(busca) ||
+    p.titulo.toLowerCase().includes(busca)
+  );
+  if (filtradas.length === 0) {
+    el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);padding:10px;text-align:center;">Nenhuma prova encontrada.</div>';
+    return;
+  }
+  el.innerHTML = filtradas.map(p => `
+    <div onclick="scSelecionarProva('${p.id}')"
+      style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all 0.15s;background:var(--bg3);"
+      onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.72rem;background:var(--bg4);padding:2px 8px;border-radius:4px;color:var(--accent);">${p.codigo}</span>
+        <span style="font-size:0.85rem;font-weight:500;flex:1;">${p.titulo}</span>
+        <span style="font-size:0.72rem;color:var(--text2);">${p.versoes.length} versão(ões) · ${p.questoes.length}Q</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
+        ${p.versoes.map(v => `
+          <span onclick="event.stopPropagation();scSelecionarVersaoProva('${p.id}','${v.versao}')"
+            style="font-size:0.7rem;padding:3px 10px;border-radius:12px;border:1px solid var(--border);cursor:pointer;background:var(--bg4);color:var(--text2);transition:all 0.12s;"
+            onmouseover="this.style.background='var(--accent)';this.style.color='#1a1a10'" onmouseout="this.style.background='var(--bg4)';this.style.color='var(--text2)'">
+            Versão ${v.versao}
+          </span>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function scFiltrarProvas() {
+  const val = document.getElementById('sc-cod-input').value;
+  scRenderProvasList(val);
+  document.getElementById('sc-id-erro').style.display = 'none';
+}
+
+function scConfirmarProva() {
+  const cod = document.getElementById('sc-cod-input').value.trim();
+  if (!cod) { scMostrarErro('Informe o código ou número da prova.'); return; }
+  const p = DB.provas.find(x =>
+    x.codigo.toLowerCase() === cod.toLowerCase() ||
+    x.titulo.toLowerCase() === cod.toLowerCase()
+  );
+  if (!p) { scMostrarErro(`Prova "${cod}" não encontrada. Verifique o código ou selecione na lista.`); return; }
+  // Se só tem 1 versão, usa direto; senão pede para escolher
+  if (p.versoes.length === 1) {
+    scCarregarProvaVersao(p, p.versoes[0]);
+  } else {
+    scMostrarErro(`A prova "${p.titulo}" possui ${p.versoes.length} versões. Clique na versão desejada na lista abaixo.`);
+    scRenderProvasList(cod);
   }
 }
 
+function scSelecionarProva(provaId) {
+  const p = DB.provas.find(x => x.id === provaId);
+  if (!p) return;
+  if (p.versoes.length === 1) { scCarregarProvaVersao(p, p.versoes[0]); return; }
+  scMostrarErro(`Selecione a versão desejada clicando nos botões de versão.`);
+}
+
+function scSelecionarVersaoProva(provaId, versaoNome) {
+  const p = DB.provas.find(x => x.id === provaId);
+  if (!p) return;
+  const v = p.versoes.find(x => x.versao === versaoNome);
+  if (!v) return;
+  scCarregarProvaVersao(p, v);
+}
+
+function scMostrarErro(msg) {
+  const el = document.getElementById('sc-id-erro');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function scCarregarProvaVersao(prova, versao) {
+  scDetected = { prova, versao };
+  // Populate step-1 banner
+  document.getElementById('sc-versao-badge').textContent = versao.versao;
+  document.getElementById('sc-prova-titulo').textContent = prova.titulo;
+  document.getElementById('sc-prova-meta').textContent =
+    `${prova.codigo} · Versão ${versao.versao} · ${versao.questoes.length} questão(ões) · Valor total: ${(versao.questoes.length * prova.valor).toFixed(1)} pts`;
+  scRenderRespostasGrid(versao);
+  omrReset();
+  scShowStep(1);
+  document.getElementById('sc-nome')?.focus();
+  toast(`✅ Versão ${versao.versao} carregada — fotografe a folha de respostas.`);
+}
+
+// ── QR Code (alternativa) ────────────────────────────────────────
 function scUpdateStatus(msg, type = 'neutral') {
   const el = document.getElementById('sc-status');
   if (!el) return;
@@ -2211,30 +2375,20 @@ function scUpdateStatus(msg, type = 'neutral') {
 }
 
 async function scStart() {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    toast('Câmera não suportada neste navegador.', 'err');
-    scUpdateStatus('❌ Câmera não suportada neste navegador.', 'err');
-    return;
-  }
+  if (!navigator.mediaDevices?.getUserMedia) { toast('Câmera não suportada.', 'err'); return; }
   try {
-    scStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
+    scStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } });
     const video = document.getElementById('sc-video');
     video.srcObject = scStream;
     await video.play();
-
+    document.getElementById('sc-video-wrap').style.display = 'block';
     document.getElementById('sc-btn-start').style.display = 'none';
     document.getElementById('sc-btn-stop').style.display = 'inline-flex';
-    document.getElementById('sc-cam-placeholder').style.display = 'none';
     document.getElementById('sc-scanline').style.display = 'block';
     scScanActive = true;
-    scUpdateStatus('🔍 Escaneando… aponte para o QR Code no cabeçalho da prova.', 'info');
+    scUpdateStatus('🔍 Escaneando QR Code…', 'info');
     scFrameLoop();
-  } catch (e) {
-    scUpdateStatus('❌ Erro ao acessar câmera: ' + e.message, 'err');
-    toast('Erro ao acessar câmera: ' + e.message, 'err');
-  }
+  } catch (e) { scUpdateStatus('❌ ' + e.message, 'err'); }
 }
 
 function scStop() {
@@ -2243,128 +2397,81 @@ function scStop() {
   if (scStream) { scStream.getTracks().forEach(t => t.stop()); scStream = null; }
   const video = document.getElementById('sc-video');
   if (video) video.srcObject = null;
-  const btnStart = document.getElementById('sc-btn-start');
-  const btnStop  = document.getElementById('sc-btn-stop');
-  const scanline = document.getElementById('sc-scanline');
-  const placeholder = document.getElementById('sc-cam-placeholder');
-  if (btnStart) btnStart.style.display = 'inline-flex';
-  if (btnStop)  btnStop.style.display  = 'none';
-  if (scanline) scanline.style.display = 'none';
-  if (placeholder) placeholder.style.display = 'flex';
+  document.getElementById('sc-video-wrap').style.display = 'none';
+  document.getElementById('sc-btn-start').style.display = 'inline-flex';
+  document.getElementById('sc-btn-stop').style.display = 'none';
+  document.getElementById('sc-scanline').style.display = 'none';
 }
 
 function scFrameLoop() {
   if (!scScanActive) return;
-  const video  = document.getElementById('sc-video');
+  const video = document.getElementById('sc-video');
   const canvas = document.getElementById('sc-canvas');
-  if (!video || video.readyState < 2) {
-    scRafId = requestAnimationFrame(scFrameLoop);
-    return;
-  }
-  canvas.width  = video.videoWidth  || 640;
-  canvas.height = video.videoHeight || 480;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  if (!video || video.readyState < 2) { scRafId = requestAnimationFrame(scFrameLoop); return; }
+  canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
   if (typeof jsQR !== 'undefined') {
     const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
-    if (code) {
-      scHandleQRData(code.data);
-      return; // stop loop — success
-    }
+    if (code) { scHandleQRData(code.data); return; }
   }
   scRafId = requestAnimationFrame(scFrameLoop);
 }
 
 function scUploadImage(input) {
-  const file = input.files[0];
-  if (!file) return;
-  scUpdateStatus('⏳ Analisando imagem…', 'info');
+  const file = input.files[0]; if (!file) return;
+  scUpdateStatus('⏳ Lendo QR Code…', 'info');
   const reader = new FileReader();
   reader.onload = e => {
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width; canvas.height = img.height;
-      canvas.getContext('2d').drawImage(img, 0, 0);
-      const imageData = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const id = c.getContext('2d').getImageData(0, 0, c.width, c.height);
       if (typeof jsQR !== 'undefined') {
-        const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+        const code = jsQR(id.data, id.width, id.height, { inversionAttempts: 'attemptBoth' });
         if (code) { scHandleQRData(code.data); return; }
       }
-      scUpdateStatus('❌ QR Code não encontrado. Tente uma foto mais nítida e bem iluminada.', 'err');
-      toast('QR Code não encontrado na imagem.', 'err');
+      scUpdateStatus('❌ QR Code não encontrado na imagem.', 'err');
     };
     img.src = e.target.result;
   };
-  reader.readAsDataURL(file);
-  input.value = '';
+  reader.readAsDataURL(file); input.value = '';
 }
 
 function scHandleQRData(rawData) {
   scStop();
-  // Flash success visual
   const flash = document.getElementById('sc-success-flash');
   if (flash) { flash.style.display = 'block'; setTimeout(() => flash.style.display = 'none', 500); }
-
   let data;
-  try { data = JSON.parse(rawData); } catch {
-    scUpdateStatus('❌ QR Code com formato inválido.', 'err');
-    toast('QR Code inválido.', 'err');
-    return;
-  }
-
+  try { data = JSON.parse(rawData); } catch { scUpdateStatus('❌ QR inválido.', 'err'); return; }
   const prova = DB.provas.find(p => p.codigo === data.prova);
-  if (!prova) {
-    scUpdateStatus(`❌ Prova "${data.prova}" não encontrada no sistema.`, 'err');
-    toast('Prova não encontrada.', 'err');
-    return;
-  }
+  if (!prova) { scUpdateStatus(`❌ Prova "${data.prova}" não encontrada.`, 'err'); return; }
   const versao = prova.versoes.find(v => v.versao === data.versao);
-  if (!versao) {
-    scUpdateStatus(`❌ Versão "${data.versao}" não encontrada.`, 'err');
-    return;
-  }
-  if (versao.hash !== data.hash) {
-    scUpdateStatus('⚠️ Hash inválido — QR Code pode ter sido adulterado.', 'err');
-    toast('Hash do QR Code inválido!', 'err');
-    return;
-  }
-
-  scDetected = { prova, versao };
-  scUpdateStatus(`✅ ${prova.titulo} — Versão ${data.versao} identificada!`, 'ok');
-
-  // Populate banner
-  document.getElementById('sc-versao-badge').textContent = data.versao;
-  document.getElementById('sc-prova-titulo').textContent = prova.titulo;
-  document.getElementById('sc-prova-meta').textContent =
-    `${data.prova} · Versão ${data.versao} · ${versao.questoes.length} questões · Valor total: ${(versao.questoes.length * prova.valor).toFixed(1)} pts · Hash: ${data.hash}`;
-
-  // Build answer bubbles
-  scRenderRespostasGrid(versao);
-
-  // Switch to step 1
-  scShowStep(1);
-  document.getElementById('sc-nome')?.focus();
-  toast(`✅ Versão ${data.versao} identificada — preencha os dados do aluno.`);
+  if (!versao) { scUpdateStatus(`❌ Versão "${data.versao}" não encontrada.`, 'err'); return; }
+  if (versao.hash !== data.hash) { scUpdateStatus('⚠️ Hash inválido.', 'err'); return; }
+  scUpdateStatus(`✅ Versão ${data.versao} identificada!`, 'ok');
+  scCarregarProvaVersao(prova, versao);
 }
 
+// ── Grade de respostas ───────────────────────────────────────────
 function scRenderRespostasGrid(versao) {
   const el = document.getElementById('sc-respostas-grid');
   const total = versao.questoes.length;
-  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;" id="sc-grid-inner">
+  el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:5px;" id="sc-grid-inner">
     ${versao.questoes.map((q, i) => {
       const isVF = (q.tipo || 'multipla') === 'vf';
       if (isVF) return `
-        <div class="sc-resp-row" style="display:flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:6px;padding:6px 10px;">
-          <span style="font-size:0.72rem;color:var(--text2);min-width:24px;font-family:'DM Mono',monospace;">${i+1}.</span>
-          <div class="gabarito-bubble sc-bubble" id="sc-r-${i}-V" onclick="scMarcar(${i},'V',${total})" style="min-width:32px;border-radius:6px;font-size:0.78rem;">V</div>
-          <div class="gabarito-bubble sc-bubble" id="sc-r-${i}-F" onclick="scMarcar(${i},'F',${total})" style="min-width:32px;border-radius:6px;font-size:0.78rem;">F</div>
+        <div style="display:flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:6px;padding:5px 8px;">
+          <span style="font-size:0.7rem;color:var(--text2);min-width:22px;font-family:'DM Mono',monospace;">${i+1}.</span>
+          <div class="gabarito-bubble sc-bubble" id="sc-r-${i}-V" onclick="scMarcar(${i},'V',${total})" style="min-width:30px;border-radius:5px;font-size:0.75rem;">V</div>
+          <div class="gabarito-bubble sc-bubble" id="sc-r-${i}-F" onclick="scMarcar(${i},'F',${total})" style="min-width:30px;border-radius:5px;font-size:0.75rem;">F</div>
         </div>`;
       const letrasAtivas = LETRAS.filter(l => q.alternativas[l]);
       return `
-        <div class="sc-resp-row" style="display:flex;align-items:center;gap:5px;border:1px solid var(--border);border-radius:6px;padding:6px 10px;">
-          <span style="font-size:0.72rem;color:var(--text2);min-width:24px;font-family:'DM Mono',monospace;">${i+1}.</span>
+        <div style="display:flex;align-items:center;gap:4px;border:1px solid var(--border);border-radius:6px;padding:5px 8px;" id="sc-row-${i}">
+          <span style="font-size:0.7rem;color:var(--text2);min-width:22px;font-family:'DM Mono',monospace;">${i+1}.</span>
           ${letrasAtivas.map(l => `<div class="gabarito-bubble sc-bubble" id="sc-r-${i}-${l}" onclick="scMarcar(${i},'${l}',${total})">${l}</div>`).join('')}
         </div>`;
     }).join('')}
@@ -2373,43 +2480,175 @@ function scRenderRespostasGrid(versao) {
 }
 
 function scMarcar(qIdx, letra, total) {
-  // Unmark all options for this question
-  [...LETRAS, 'V', 'F'].forEach(l => {
-    document.getElementById(`sc-r-${qIdx}-${l}`)?.classList.remove('marked');
-  });
+  [...LETRAS, 'V', 'F'].forEach(l => document.getElementById(`sc-r-${qIdx}-${l}`)?.classList.remove('marked'));
   document.getElementById(`sc-r-${qIdx}-${letra}`)?.classList.add('marked');
-  // Update counter
-  const marcadas = document.querySelectorAll('#sc-grid-inner .sc-bubble.marked').length;
-  scAtualizarContador(marcadas, total);
+  scAtualizarContador(document.querySelectorAll('#sc-grid-inner .sc-bubble.marked').length, total);
 }
 
 function scAtualizarContador(marcadas, total) {
-  const el = document.getElementById('sc-resp-counter');
-  if (!el) return;
+  const el = document.getElementById('sc-resp-counter'); if (!el) return;
   const cor = marcadas === total ? 'var(--success)' : marcadas > 0 ? 'var(--accent)' : 'var(--text2)';
   el.innerHTML = `<span style="color:${cor};font-weight:${marcadas===total?'700':'400'};">${marcadas} / ${total} marcadas${marcadas===total?' ✓':''}</span>`;
 }
 
+// ── OMR com Claude Vision ────────────────────────────────────────
+function omrReset() {
+  omrImageBase64 = null;
+  ['omr-preview-wrap','omr-cam-wrap','omr-status'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  const btns = document.getElementById('omr-btns');
+  if (btns) btns.style.display = 'flex';
+  const btn = document.getElementById('omr-analisar-btn');
+  if (btn) { btn.disabled = false; btn.textContent = '🔍 Analisar com IA'; }
+  omrStopCam();
+}
+
+async function omrStartCam() {
+  if (!navigator.mediaDevices?.getUserMedia) { toast('Câmera não suportada.', 'err'); return; }
+  try {
+    omrStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } }
+    });
+    const video = document.getElementById('omr-video');
+    video.srcObject = omrStream;
+    await video.play();
+    document.getElementById('omr-cam-wrap').style.display = 'block';
+    document.getElementById('omr-btns').style.display = 'none';
+  } catch (e) { toast('Erro ao acessar câmera: ' + e.message, 'err'); }
+}
+
+function omrStopCam() {
+  if (omrStream) { omrStream.getTracks().forEach(t => t.stop()); omrStream = null; }
+  const v = document.getElementById('omr-video'); if (v) v.srcObject = null;
+  const wrap = document.getElementById('omr-cam-wrap'); if (wrap) wrap.style.display = 'none';
+}
+
+function omrCapture() {
+  const video = document.getElementById('omr-video');
+  const canvas = document.getElementById('omr-canvas');
+  canvas.width = video.videoWidth || 1280; canvas.height = video.videoHeight || 720;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  omrImageBase64 = canvas.toDataURL('image/jpeg', 0.93).split(',')[1];
+  omrStopCam();
+  document.getElementById('omr-preview-img').src = 'data:image/jpeg;base64,' + omrImageBase64;
+  document.getElementById('omr-preview-wrap').style.display = 'block';
+  document.getElementById('omr-btns').style.display = 'none';
+}
+
+function omrUploadFoto(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    omrImageBase64 = dataUrl.split(',')[1];
+    document.getElementById('omr-preview-img').src = dataUrl;
+    document.getElementById('omr-preview-wrap').style.display = 'block';
+    document.getElementById('omr-btns').style.display = 'none';
+    document.getElementById('omr-status').style.display = 'none';
+  };
+  reader.readAsDataURL(file); input.value = '';
+}
+
+async function omrAnalisar() {
+  if (!omrImageBase64) { toast('Nenhuma imagem carregada.', 'err'); return; }
+  if (!scDetected) { toast('Prova não identificada.', 'err'); return; }
+  const { versao } = scDetected;
+
+  const questoesInfo = versao.questoes.map((q, i) => {
+    const isVF = (q.tipo || 'multipla') === 'vf';
+    const opts = isVF ? ['V','F'] : LETRAS.filter(l => q.alternativas[l]);
+    return `Questão ${i+1}: opções [${opts.join(', ')}]`;
+  }).join('\n');
+
+  const statusEl = document.getElementById('omr-status');
+  const btnEl = document.getElementById('omr-analisar-btn');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<span style="color:var(--accent3);">⏳ A IA está analisando a folha de respostas… aguarde.</span>';
+  btnEl.disabled = true; btnEl.textContent = '⏳ Analisando…';
+
+  const prompt = `Você é um sistema OMR (Optical Mark Recognition) para correção automática de provas escolares.
+
+Analise a imagem desta folha de respostas preenchida e identifique qual alternativa está marcada em cada questão.
+
+Informações da prova — ${versao.questoes.length} questões:
+${questoesInfo}
+
+REGRAS DE ANÁLISE:
+- Uma bolha marcada é mais escura, preenchida, ou tem um X/traço/marcação visível.
+- Retorne null se: nenhuma bolha marcada, marcação ilegível, ou mais de uma alternativa marcada na mesma questão (rasura).
+- Seja preciso: só retorne uma letra se a marcação for inequívoca.
+- Ignore sujeira, dobras ou manchas leves — só marque o que claramente indica intenção do aluno.
+
+Responda SOMENTE com JSON puro, sem markdown, sem texto extra:
+{"respostas":["A","B",null,"C",...]}
+
+O array deve ter exatamente ${versao.questoes.length} elementos na ordem das questões.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: omrImageBase64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    });
+    if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || 'Erro na API'); }
+    const data = await response.json();
+    const textBlock = data.content.find(b => b.type === 'text');
+    if (!textBlock) throw new Error('Resposta vazia da IA.');
+    let parsed;
+    try { parsed = JSON.parse(textBlock.text.replace(/```json|```/g,'').trim()); }
+    catch { throw new Error('Formato inválido retornado pela IA.'); }
+    const respostas = parsed.respostas;
+    if (!Array.isArray(respostas) || respostas.length !== versao.questoes.length)
+      throw new Error(`IA retornou ${respostas?.length ?? '?'} respostas, esperado ${versao.questoes.length}.`);
+
+    let marcadas = 0;
+    respostas.forEach((resp, i) => {
+      [...LETRAS,'V','F'].forEach(l => document.getElementById(`sc-r-${i}-${l}`)?.classList.remove('marked'));
+      if (!resp) return;
+      const el = document.getElementById(`sc-r-${i}-${resp.toUpperCase()}`);
+      if (el) { el.classList.add('marked'); marcadas++; }
+      // Highlight the row to show it was auto-filled
+      const row = document.getElementById(`sc-row-${i}`);
+      if (row) row.style.borderColor = 'var(--accent3)';
+    });
+    scAtualizarContador(marcadas, versao.questoes.length);
+    const nulas = respostas.filter(r => !r).length;
+    statusEl.innerHTML = `<span style="color:var(--success);">✅ OMR concluído: <strong>${marcadas}</strong> alternativas detectadas${nulas > 0 ? ` · <strong>${nulas}</strong> questão(ões) sem marcação clara` : ''}.</span>
+      <span style="color:var(--text2);"> Revise as bolhas azuis e clique em <strong>Corrigir</strong>.</span>`;
+    toast(`✅ OMR: ${marcadas}/${versao.questoes.length} alternativas detectadas!`);
+  } catch (e) {
+    statusEl.innerHTML = `<span style="color:var(--danger);">❌ ${e.message}</span>`;
+    toast('Erro no OMR: ' + e.message, 'err');
+  } finally {
+    btnEl.disabled = false; btnEl.textContent = '🔍 Analisar com IA';
+  }
+}
+
+// ── Corrigir ─────────────────────────────────────────────────────
 function scCorrigir() {
   if (!scDetected) { toast('Nenhuma prova identificada.', 'err'); return; }
   const { prova: p, versao: v } = scDetected;
   const nome      = document.getElementById('sc-nome').value.trim() || 'Aluno';
   const matricula = document.getElementById('sc-matricula').value.trim();
   const turma     = document.getElementById('sc-turma').value.trim();
-
   const respostas = v.questoes.map((q, i) => {
     const isVF = (q.tipo || 'multipla') === 'vf';
     const opts = isVF ? ['V','F'] : LETRAS;
     const marcada = opts.find(l => document.getElementById(`sc-r-${i}-${l}`)?.classList.contains('marked')) || null;
     return { marcada, correta: q.correta, acertou: marcada === q.correta };
   });
-
   const acertos = respostas.filter(r => r.acertou).length;
   const total   = respostas.length;
   const nota    = (acertos * p.valor).toFixed(2);
   const perc    = ((acertos / total) * 100).toFixed(1);
-
-  // Save
   const resultado = {
     id: uid(), provaId: p.id, provaTitle: p.titulo, provaCode: p.codigo, versao: v.versao,
     nome, matricula, turma, respostas, acertos, total,
@@ -2417,12 +2656,8 @@ function scCorrigir() {
     percentual: parseFloat(perc), data: Date.now()
   };
   const arr = DB.resultados; arr.push(resultado); DB.resultados = arr;
-
-  // Add to session queue
   scFila.unshift({ nome, nota, perc: parseFloat(perc), versao: v.versao, provaCode: p.codigo });
   scRenderFila();
-
-  // Show inline result
   const box = document.getElementById('sc-resultado');
   box.style.display = 'block';
   const percCor = perc >= 70 ? 'var(--success)' : perc >= 50 ? 'var(--accent)' : 'var(--danger)';
@@ -2435,7 +2670,7 @@ function scCorrigir() {
         </div>
         <div style="flex:1;min-width:180px;">
           <div style="font-size:1rem;font-weight:600;margin-bottom:2px;">${nome}</div>
-          <div style="font-size:0.78rem;color:var(--text2);margin-bottom:10px;">${turma ? turma+' · ' : ''}${matricula || ''}</div>
+          <div style="font-size:0.78rem;color:var(--text2);margin-bottom:10px;">${turma?turma+' · ':''}${matricula||''}</div>
           <div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-bottom:4px;">
             <span>${acertos} de ${total} acertos</span>
             <span style="color:${percCor};font-weight:600;">${perc}%</span>
@@ -2443,11 +2678,10 @@ function scCorrigir() {
           <div class="progress-bar"><div class="progress-fill" style="width:${perc}%;background:${percCor};"></div></div>
         </div>
       </div>
-
       <details style="margin-top:14px;">
         <summary style="cursor:pointer;font-size:0.8rem;color:var(--text2);user-select:none;">▶ Ver detalhamento por questão</summary>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:5px;margin-top:10px;">
-          ${respostas.map((r, i) => `
+          ${respostas.map((r,i)=>`
             <div class="result-row">
               <span class="result-icon ${r.acertou?'result-correct':'result-wrong'}">${r.acertou?'✅':'❌'}</span>
               <span style="min-width:24px;font-size:0.75rem;color:var(--text2);">${i+1}.</span>
@@ -2455,40 +2689,45 @@ function scCorrigir() {
             </div>`).join('')}
         </div>
       </details>
-
       <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
         <button class="btn btn-primary" onclick="scProximoAluno()" style="flex:1;">➕ Próximo Aluno</button>
-        <button class="btn btn-secondary" onclick="scNovaCorrecao()" style="flex:1;">🔄 Ler Novo QR Code</button>
+        <button class="btn btn-secondary" onclick="scNovaCorrecao()" style="flex:1;">🔄 Nova Correção</button>
         <button class="btn btn-secondary" onclick="showPage('resultados')" style="flex:1;">📈 Ver Resultados</button>
       </div>
     </div>`;
-
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   toast(`✅ ${nome} — Nota ${nota}`);
 }
 
 function scProximoAluno() {
-  // Keep same prova/versao, just clear student data and answers
   if (!scDetected) { scNovaCorrecao(); return; }
   document.getElementById('sc-nome').value = '';
   document.getElementById('sc-matricula').value = '';
   document.getElementById('sc-turma').value = '';
   document.getElementById('sc-resultado').style.display = 'none';
-  // Unmark all bubbles
   document.querySelectorAll('#sc-grid-inner .sc-bubble.marked').forEach(el => el.classList.remove('marked'));
-  const total = scDetected.versao.questoes.length;
-  scAtualizarContador(0, total);
+  // Reset row border colors
+  document.querySelectorAll('[id^="sc-row-"]').forEach(el => el.style.borderColor = '');
+  scAtualizarContador(0, scDetected.versao.questoes.length);
+  omrReset();
   document.getElementById('sc-nome')?.focus();
   toast('Pronto para o próximo aluno — mesma versão.', 'info');
 }
 
 function scNovaCorrecao() {
   scDetected = null;
-  document.getElementById('sc-resultado').style.display = 'none';
-  document.getElementById('sc-nome').value = '';
-  document.getElementById('sc-matricula').value = '';
-  document.getElementById('sc-turma').value = '';
+  omrReset();
+  omrStopCam();
+  scStop();
+  ['sc-resultado','sc-id-erro'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = 'none';
+  });
+  ['sc-nome','sc-matricula','sc-turma'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const inp = document.getElementById('sc-cod-input'); if (inp) inp.value = '';
   scShowStep(0);
+  scRenderProvasList();
 }
 
 function scRenderFila() {
@@ -2500,7 +2739,7 @@ function scRenderFila() {
     el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);padding:12px 0;text-align:center;">Nenhuma correção realizada nesta sessão.</div>';
     return;
   }
-  el.innerHTML = scFila.map((item, i) => {
+  el.innerHTML = scFila.map(item => {
     const cor = item.perc >= 70 ? 'var(--success)' : item.perc >= 50 ? 'var(--accent)' : 'var(--danger)';
     return `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);">
       <span style="width:8px;height:8px;border-radius:50%;background:${cor};flex-shrink:0;"></span>
