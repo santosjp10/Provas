@@ -1627,6 +1627,57 @@ tr:hover td { background: var(--bg3); }
   </div>
 </div>
 
+<!-- MODAL: EXPORTAR PARA CELULAR -->
+<div class="modal-overlay" id="modal-export-celular">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <span class="modal-title">📱 Exportar para o Celular</span>
+      <button class="modal-close" onclick="fecharModalExport()">✕</button>
+    </div>
+
+    <div id="exp-cel-content">
+      <!-- Step 1: info -->
+      <div id="exp-cel-step1">
+        <div style="background:rgba(232,197,71,0.08);border:1px solid rgba(232,197,71,0.25);border-radius:8px;padding:12px 14px;font-size:0.82rem;color:var(--accent2);line-height:1.6;margin-bottom:16px;">
+          📌 O celular escaneará <strong>dois QR Codes em sequência</strong>:<br>
+          <strong>QR 1</strong> — identificação da prova &nbsp;·&nbsp; <strong>QR 2</strong> — gabarito completo
+        </div>
+
+        <div style="font-size:0.78rem;color:var(--text2);margin-bottom:14px;line-height:1.6;">
+          Prova: <strong id="exp-cel-titulo" style="color:var(--text);">—</strong><br>
+          Versão: <strong id="exp-cel-versao" style="color:var(--accent);">—</strong> &nbsp;·&nbsp;
+          Questões: <strong id="exp-cel-nq" style="color:var(--text);">—</strong> &nbsp;·&nbsp;
+          Gabarito: <code id="exp-cel-gab" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--success);">—</code>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+          <!-- QR 1: identificação da prova -->
+          <div style="text-align:center;">
+            <div style="font-size:0.65rem;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">QR 1 — Prova</div>
+            <div id="exp-qr1" style="display:inline-block;background:#fff;padding:10px;border-radius:8px;"></div>
+            <div style="font-size:0.68rem;color:var(--text2);margin-top:6px;">Escaneie primeiro</div>
+          </div>
+          <!-- QR 2: gabarito -->
+          <div style="text-align:center;">
+            <div style="font-size:0.65rem;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">QR 2 — Gabarito</div>
+            <div id="exp-qr2" style="display:inline-block;background:#fff;padding:10px;border-radius:8px;"></div>
+            <div style="font-size:0.68rem;color:var(--text2);margin-top:6px;">Escaneie em seguida</div>
+          </div>
+        </div>
+
+        <div style="background:var(--bg3);border-radius:8px;padding:12px;font-size:0.78rem;color:var(--text2);line-height:1.6;">
+          <strong style="color:var(--text);">No celular (Scanner de Provas):</strong><br>
+          Toque em <strong>📱 Importar Gabarito</strong> → escaneie o QR 1 → escaneie o QR 2 → pronto!
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+      <button class="btn btn-secondary" onclick="fecharModalExport()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -2589,6 +2640,7 @@ function renderVersoes() {
               <button class="btn btn-secondary btn-sm" onclick="imprimirVersao('${p.id}','${v.versao}')">🖨️ Imprimir</button>
               <button class="btn btn-secondary btn-sm" onclick="imprimirFolhaResposta('${p.id}','${v.versao}')">📋 Folha</button>
               <button class="btn btn-secondary btn-sm" onclick="imprimirGabarito('${p.id}','${v.versao}')">🗝 Gabarito</button>
+              <button class="btn btn-primary btn-sm" onclick="exportarParaCelular('${p.id}','${v.versao}')" style="margin-top:4px;">📱 Exportar p/ Celular</button>
             </div>
           </div>`).join('')}
       </div>
@@ -3816,6 +3868,69 @@ function _abrirJanelaGabarito(grupos) {
 </body>
 </html>`);
   win.document.close();
+}
+
+// ===================== EXPORTAR PARA CELULAR =====================
+function exportarParaCelular(provaId, versaoNome) {
+  const p = DB.provas.find(x => x.id === provaId);
+  if (!p) return;
+  const v = p.versoes.find(x => x.versao === versaoNome);
+  if (!v) return;
+
+  // Preenche infos no modal
+  document.getElementById('exp-cel-titulo').textContent = p.titulo;
+  document.getElementById('exp-cel-versao').textContent = versaoNome;
+  document.getElementById('exp-cel-nq').textContent = v.questoes.length;
+  document.getElementById('exp-cel-gab').textContent = v.gabarito;
+
+  // Limpa QRs anteriores
+  ['exp-qr1','exp-qr2'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+
+  // QR 1 — identificação (igual ao que já existe na prova)
+  const qr1Data = JSON.stringify({
+    prova: p.codigo, versao: v.versao,
+    questoes: v.questoes.length, hash: v.hash
+  });
+
+  // QR 2 — gabarito + metadados suficientes para importação no scanner
+  const qr2Data = JSON.stringify({
+    tipo: 'GABARITO_EXPORT',
+    prova: p.codigo,
+    versao: v.versao,
+    titulo: p.titulo,
+    questoes: v.questoes.length,
+    gabarito: v.gabarito,
+    valor: p.valor,
+    hash: v.hash,
+    alts: v.questoes.map(q => {
+      if ((q.tipo||'multipla') === 'vf') return 'VF';
+      const ls = ['A','B','C','D','E'].filter(l => q.alternativas && q.alternativas[l]);
+      return ls.join('');
+    })
+  });
+
+  setTimeout(() => {
+    try {
+      new QRCode(document.getElementById('exp-qr1'), {
+        text: qr1Data, width: 160, height: 160,
+        colorDark: '#000', colorLight: '#fff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {}
+    try {
+      new QRCode(document.getElementById('exp-qr2'), {
+        text: qr2Data, width: 160, height: 160,
+        colorDark: '#000', colorLight: '#fff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    } catch(e) {}
+  }, 80);
+
+  document.getElementById('modal-export-celular').classList.add('open');
+}
+
+function fecharModalExport() {
+  document.getElementById('modal-export-celular').classList.remove('open');
 }
 
 function exportarBancoJSON() {
