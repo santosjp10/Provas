@@ -474,6 +474,70 @@ tr:hover td { background: var(--bg3); }
 }
 .badge-vf { background: #1a2a3a; color: #7ec8e3; }
 
+/* DRAWING TOOLS */
+.draw-tool {
+  width: 30px; height: 30px;
+  border-radius: 5px;
+  border: 1.5px solid var(--border);
+  background: var(--bg4);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.85rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+  padding: 0;
+  line-height: 1;
+}
+.draw-tool:hover { border-color: var(--accent); color: var(--text); }
+.draw-tool.active { border-color: var(--accent); background: rgba(232,197,71,0.15); color: var(--accent); }
+.draw-color {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.12s, border-color 0.12s;
+}
+.draw-color:hover { transform: scale(1.15); }
+.draw-color.active { border-color: var(--accent); box-shadow: 0 0 0 1px var(--bg3); }
+.draw-size {
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1.5px solid var(--border);
+  background: var(--bg4);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.12s;
+  line-height: 1.8;
+}
+.draw-size:hover { border-color: var(--accent); }
+.draw-size.active { border-color: var(--accent); background: rgba(232,197,71,0.15); color: var(--accent); }
+.linhas-preview-line {
+  border-bottom: 1px solid #bbb;
+  height: 22px;
+  margin-bottom: 2px;
+}
+
+/* PRINT CONFIG BUTTONS */
+.print-cfg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: var(--bg4);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.74rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.print-cfg-btn:hover { border-color: var(--accent); color: var(--text); }
+.print-cfg-btn.active { border-color: var(--accent); background: rgba(232,197,71,0.12); color: var(--accent); }
+
 /* DRAG HANDLE */
 .drag-handle { cursor: grab; color: var(--text2); padding: 0 6px; font-size: 1rem; }
 .drag-handle:active { cursor: grabbing; }
@@ -954,6 +1018,7 @@ tr:hover td { background: var(--bg3); }
           <option value="">Todos os tipos</option>
           <option value="multipla">Múltipla Escolha</option>
           <option value="vf">Verdadeiro/Falso</option>
+          <option value="discursiva">Discursiva</option>
         </select>
         <button class="btn btn-primary" onclick="openModalQuestao()">➕ Nova Questão</button>
       </div>
@@ -1291,11 +1356,50 @@ tr:hover td { background: var(--bg3); }
         </div>
         <div class="card">
           <div class="card-title">Imprimir Prova + Gabarito</div>
-          <p style="font-size:0.83rem;color:var(--text2);margin-bottom:14px;">Selecione uma versão para gerar a versão de impressão.</p>
-          <select class="form-control" id="exp-prova-sel" style="margin-bottom:10px;">
+          <p style="font-size:0.83rem;color:var(--text2);margin-bottom:14px;">Selecione uma versão e configure o layout de impressão.</p>
+          <select class="form-control" id="exp-prova-sel" style="margin-bottom:12px;">
             <option value="">-- Selecione --</option>
           </select>
-          <button class="btn btn-primary" onclick="abrirImpressao()">🖨️ Visualizar para Impressão</button>
+          <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;">
+            <div style="font-size:0.7rem;font-family:'DM Mono',monospace;color:var(--text2);letter-spacing:.07em;text-transform:uppercase;margin-bottom:10px;">⚙️ Configurações de Impressão</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <div style="flex:1;min-width:120px;">
+                <div style="font-size:0.72rem;color:var(--text2);margin-bottom:6px;">Colunas de questões</div>
+                <div style="display:flex;gap:6px;">
+                  <button type="button" id="print-col-1" class="print-cfg-btn active" onclick="setPrintCols(1)">
+                    <svg width="18" height="22" viewBox="0 0 22 26"><rect x="2" y="2" width="18" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="2" y="10" width="18" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="2" y="18" width="18" height="5" rx="1.5" fill="currentColor" opacity=".5"/></svg>
+                    1 coluna
+                  </button>
+                  <button type="button" id="print-col-2" class="print-cfg-btn" onclick="setPrintCols(2)">
+                    <svg width="18" height="22" viewBox="0 0 22 26"><rect x="1" y="2" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="13" y="2" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="1" y="10" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="13" y="10" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="1" y="18" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/><rect x="13" y="18" width="8" height="5" rx="1.5" fill="currentColor" opacity=".5"/></svg>
+                    2 colunas
+                  </button>
+                </div>
+              </div>
+              <div style="flex:1;min-width:120px;">
+                <div style="font-size:0.72rem;color:var(--text2);margin-bottom:6px;">Tamanho da fonte</div>
+                <div style="display:flex;gap:6px;">
+                  <button type="button" id="print-font-sm" class="print-cfg-btn" onclick="setPrintFont('sm')"><span style="font-size:0.72rem;font-weight:700;">A</span> Pequena</button>
+                  <button type="button" id="print-font-md" class="print-cfg-btn active" onclick="setPrintFont('md')"><span style="font-size:0.88rem;font-weight:700;">A</span> Normal</button>
+                  <button type="button" id="print-font-lg" class="print-cfg-btn" onclick="setPrintFont('lg')"><span style="font-size:1.05rem;font-weight:700;">A</span> Grande</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="abrirImpressao()">🖨️ Imprimir Prova</button>
+            <button class="btn btn-secondary" onclick="abrirImpressaoFolha()">📋 Imprimir Folha</button>
+          </div>
+        </div>
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-title">🗝 Imprimir Gabarito</div>
+          <p style="font-size:0.83rem;color:var(--text2);margin-bottom:14px;">Gera uma folha de gabarito com as respostas corretas de todas as versões de uma prova, ou de todas as provas de uma vez.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <select class="form-control" id="gab-prova-sel" style="flex:1;min-width:200px;">
+              <option value="">-- Todas as provas --</option>
+            </select>
+            <button class="btn btn-primary" onclick="imprimirGabaritoSel()">🗝 Imprimir Gabarito</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1331,9 +1435,10 @@ tr:hover td { background: var(--bg3); }
     </div>
     <div class="form-group">
       <label class="form-label">Tipo de Questão</label>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button type="button" class="img-pos-btn active" id="tipo-btn-multipla" onclick="setTipoQuestao('multipla')">☑ Múltipla Escolha</button>
         <button type="button" class="img-pos-btn" id="tipo-btn-vf" onclick="setTipoQuestao('vf')">✓✗ Verdadeiro / Falso</button>
+        <button type="button" class="img-pos-btn" id="tipo-btn-discursiva" onclick="setTipoQuestao('discursiva')">✍️ Discursiva</button>
       </div>
     </div>
     <div class="form-group">
@@ -1354,17 +1459,109 @@ tr:hover td { background: var(--bg3); }
       </div>
       <div id="img-preview-container"></div>
     </div>
-    <div class="form-group">
+    <!-- Seção de desenho (visível apenas para questão discursiva) -->
+    <div class="form-group" id="drawing-section" style="display:none;">
+      <label class="form-label">Desenho / Diagrama (opcional)</label>
+      <p style="font-size:0.75rem;color:var(--text2);margin-bottom:8px;">Use o editor abaixo para inserir figuras, esquemas ou diagramas que acompanharão a questão na impressão.</p>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+        <!-- Toolbar de desenho -->
+        <div id="draw-toolbar" style="display:flex;align-items:center;gap:4px;padding:8px 10px;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <div style="display:flex;gap:3px;margin-right:6px;">
+            <button type="button" class="draw-tool active" id="dtool-pen" onclick="setDrawTool('pen')" title="Caneta">✏️</button>
+            <button type="button" class="draw-tool" id="dtool-line" onclick="setDrawTool('line')" title="Linha">╱</button>
+            <button type="button" class="draw-tool" id="dtool-rect" onclick="setDrawTool('rect')" title="Retângulo">▭</button>
+            <button type="button" class="draw-tool" id="dtool-circle" onclick="setDrawTool('circle')" title="Elipse">◯</button>
+            <button type="button" class="draw-tool" id="dtool-arrow" onclick="setDrawTool('arrow')" title="Seta">➜</button>
+            <button type="button" class="draw-tool" id="dtool-text" onclick="setDrawTool('text')" title="Texto">T</button>
+            <button type="button" class="draw-tool" id="dtool-eraser" onclick="setDrawTool('eraser')" title="Borracha">⌫</button>
+          </div>
+          <div style="width:1px;height:22px;background:var(--border);margin:0 4px;"></div>
+          <!-- Cor -->
+          <div style="display:flex;gap:3px;align-items:center;">
+            <span style="font-size:0.65rem;color:var(--text2);">Cor:</span>
+            <div id="draw-color-palette" style="display:flex;gap:3px;">
+              <div class="draw-color active" style="background:#111111;" data-color="#111111" onclick="setDrawColor('#111111')" title="Preto"></div>
+              <div class="draw-color" style="background:#e63946;" data-color="#e63946" onclick="setDrawColor('#e63946')" title="Vermelho"></div>
+              <div class="draw-color" style="background:#2196f3;" data-color="#2196f3" onclick="setDrawColor('#2196f3')" title="Azul"></div>
+              <div class="draw-color" style="background:#4caf50;" data-color="#4caf50" onclick="setDrawColor('#4caf50')" title="Verde"></div>
+              <div class="draw-color" style="background:#ff9800;" data-color="#ff9800" onclick="setDrawColor('#ff9800')" title="Laranja"></div>
+              <div class="draw-color" style="background:#9c27b0;" data-color="#9c27b0" onclick="setDrawColor('#9c27b0')" title="Roxo"></div>
+              <input type="color" id="draw-custom-color" title="Cor personalizada" style="width:22px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:1px;background:none;" onchange="setDrawColor(this.value)">
+            </div>
+          </div>
+          <div style="width:1px;height:22px;background:var(--border);margin:0 4px;"></div>
+          <!-- Espessura -->
+          <div style="display:flex;gap:4px;align-items:center;">
+            <span style="font-size:0.65rem;color:var(--text2);">Esp.:</span>
+            <button type="button" class="draw-size active" id="dsize-1" onclick="setDrawSize(1.5)" title="Fina">─</button>
+            <button type="button" class="draw-size" id="dsize-2" onclick="setDrawSize(3)" title="Média">━</button>
+            <button type="button" class="draw-size" id="dsize-3" onclick="setDrawSize(6)" title="Grossa">▬</button>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:4px;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="drawUndo()" title="Desfazer">↩ Desfazer</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="drawClear()" title="Limpar tudo">🗑 Limpar</button>
+          </div>
+        </div>
+        <!-- Canvas -->
+        <div style="position:relative;background:#fff;cursor:crosshair;" id="draw-canvas-wrap">
+          <canvas id="draw-canvas" style="display:block;width:100%;touch-action:none;"></canvas>
+          <input type="text" id="draw-text-input" placeholder="Digite o texto..." style="display:none;position:absolute;background:transparent;border:none;outline:1px dashed #888;font-size:14px;padding:2px 4px;color:#111;min-width:80px;z-index:10;">
+        </div>
+        <div style="padding:6px 10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:0.7rem;color:var(--text2);" id="draw-hint">✏️ Clique e arraste para desenhar</span>
+          <div style="display:flex;gap:6px;">
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer;" title="Importar imagem de fundo">
+              🖼 Fundo
+              <input type="file" accept="image/*" style="display:none;" onchange="drawImportBg(this)">
+            </label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleDrawingSection()" id="btn-toggle-draw">➖ Ocultar editor</button>
+          </div>
+        </div>
+      </div>
+      <!-- Preview do desenho salvo -->
+      <div id="draw-preview-container" style="margin-top:8px;display:none;">
+        <p style="font-size:0.72rem;color:var(--success);margin-bottom:6px;">✅ Desenho incluído na questão</p>
+        <img id="draw-preview-img" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border);display:block;" alt="preview do desenho">
+        <button type="button" class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="openDrawEditor()">✏️ Editar desenho</button>
+      </div>
+    </div>
+    <!-- Linhas de resposta (discursiva) -->
+    <div class="form-group" id="linhas-section" style="display:none;">
+      <label class="form-label">Linhas para resposta do aluno</label>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <input type="range" id="q-linhas" min="1" max="30" value="8" style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('linhas-val').textContent=this.value">
+        <span id="linhas-val" style="font-family:'DM Mono',monospace;font-size:0.85rem;min-width:28px;">8</span>
+        <span style="font-size:0.75rem;color:var(--text2);">linhas</span>
+      </div>
+      <div id="linhas-preview" style="margin-top:8px;"></div>
+    </div>
+    <div class="form-group" id="alt-rows-group">
       <label class="form-label">Alternativas — clique na letra para marcar a correta</label>
       <div id="alt-rows"></div>
     </div>
     <div class="form-group">
-      <label class="form-label">Observações (opcional)</label>
-      <input type="text" class="form-control" id="q-obs" placeholder="Fonte, referência, etc.">
+      <label class="form-label">Observações / Critérios de correção (opcional)</label>
+      <input type="text" class="form-control" id="q-obs" placeholder="Fonte, referência, critérios, etc.">
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
       <button class="btn btn-secondary" onclick="closeModal('modal-questao')">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarQuestao()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITOR DE DESENHO (tela cheia) -->
+<div class="modal-overlay" id="modal-draw-editor" style="align-items:stretch;padding:0;">
+  <div style="width:100%;height:100%;background:var(--bg2);display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);flex-shrink:0;">
+      <span style="font-family:'DM Serif Display',serif;font-size:1.1rem;">Editor de Desenho</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="drawSaveFromEditor()">💾 Salvar Desenho</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-draw-editor')">✕ Cancelar</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#e8e8e8;padding:16px;">
+      <canvas id="draw-canvas-editor" style="background:white;border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,0.2);max-width:100%;max-height:100%;cursor:crosshair;touch-action:none;"></canvas>
     </div>
   </div>
 </div>
@@ -1377,6 +1574,56 @@ tr:hover td { background: var(--bg3); }
       <button class="modal-close" onclick="closeModal('modal-view-q')">✕</button>
     </div>
     <div id="modal-view-content"></div>
+  </div>
+</div>
+
+<!-- MODAL EDIÇÃO DE PROVA -->
+<div class="modal-overlay" id="modal-edit-prova">
+  <div class="modal" style="max-width:860px;width:95%;">
+    <div class="modal-header">
+      <div>
+        <span class="modal-title" id="edit-prova-titulo">Editar Prova</span>
+        <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);margin-top:2px;" id="edit-prova-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('modal-edit-prova')">✕</button>
+    </div>
+
+    <!-- Tabs de versões -->
+    <div class="tabs" id="edit-versao-tabs" style="margin-bottom:14px;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+
+      <!-- Coluna esquerda: questões da versão ativa -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;">Questões da Versão</div>
+          <span style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);" id="edit-versao-info"></span>
+        </div>
+        <div id="edit-questoes-list"
+          style="min-height:120px;max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--bg3);"
+          ondragover="event.preventDefault()"
+        ></div>
+        <p style="font-size:0.7rem;color:var(--text2);margin-top:6px;">⠿ Arraste para reordenar · ✕ para remover</p>
+      </div>
+
+      <!-- Coluna direita: banco disponível -->
+      <div>
+        <div style="font-size:0.72rem;font-family:'DM Mono',monospace;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Banco de Questões — Adicionar</div>
+        <input type="text" class="form-control" id="edit-banco-search"
+          placeholder="🔍 Buscar por enunciado, disciplina..."
+          style="margin-bottom:8px;font-size:0.82rem;"
+          oninput="renderEditBancoDisponivel(DB.provas.find(x=>x.id===editProvaId))">
+        <div id="edit-banco-list"
+          style="max-height:360px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px 10px;background:var(--bg3);">
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);">
+      <p style="font-size:0.75rem;color:var(--text2);flex:1;align-self:center;">As alterações são aplicadas apenas à versão selecionada. Outras versões permanecem intactas.</p>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-prova')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicaoProva()">💾 Salvar Alterações</button>
+    </div>
   </div>
 </div>
 
@@ -1515,24 +1762,30 @@ function renderBanco() {
   if (q.length === 0) { el.innerHTML = '<div class="empty-state"><div class="icon">📚</div><p>Nenhuma questão encontrada.</p></div>'; return; }
   el.innerHTML = q.map(x => {
     const isVF = (x.tipo || 'multipla') === 'vf';
+    const isDisc = (x.tipo || 'multipla') === 'discursiva';
     return `
     <div class="q-card" id="qc-${x.id}">
       <div class="q-card-header">
         <span class="q-id">#${x.id.slice(-6)}</span>
         <span class="badge badge-${x.nivel==='Fácil'?'easy':x.nivel==='Médio'?'medium':'hard'}">${x.nivel}</span>
-        ${isVF ? '<span class="badge badge-vf">V/F</span>' : '<span class="badge" style="background:#252532;color:#9999b3;">ME</span>'}
+        ${isVF ? '<span class="badge badge-vf">V/F</span>' : isDisc ? '<span class="badge" style="background:#1a2a1a;color:#4ecdc4;">DISC</span>' : '<span class="badge" style="background:#252532;color:#9999b3;">ME</span>'}
         <span class="badge badge-a">${x.disciplina}</span>
         <span style="font-size:0.72rem;color:var(--text2);">${x.assunto}</span>
         ${x.imagem ? '<span class="q-has-img">🖼 imagem</span>' : ''}
+        ${x.desenho ? '<span class="q-has-img">✏️ desenho</span>' : ''}
       </div>
       <div style="display:flex;gap:12px;align-items:flex-start;">
         ${x.imagem && x.imagemPos === 'direita' ? `<div style="flex:1;"><div class="q-enunciado">${x.enunciado.length > 160 ? x.enunciado.slice(0,160)+'…' : x.enunciado}</div></div><img src="${x.imagem}" class="q-thumb" alt="imagem">` :
           x.imagem && x.imagemPos === 'acima' ? `<div style="flex:1;"><img src="${x.imagem}" class="q-thumb" style="margin-bottom:6px;" alt="imagem"><br><div class="q-enunciado">${x.enunciado.length > 160 ? x.enunciado.slice(0,160)+'…' : x.enunciado}</div></div>` :
-          `<div style="flex:1;"><div class="q-enunciado">${x.enunciado.length > 160 ? x.enunciado.slice(0,160)+'…' : x.enunciado}</div>${x.imagem ? `<img src="${x.imagem}" class="q-thumb" style="margin-top:6px;" alt="imagem">` : ''}</div>`
+          `<div style="flex:1;"><div class="q-enunciado">${x.enunciado.length > 160 ? x.enunciado.slice(0,160)+'…' : x.enunciado}</div>${x.imagem ? `<img src="${x.imagem}" class="q-thumb" style="margin-top:6px;" alt="imagem">` : ''}${x.desenho ? `<img src="${x.desenho}" class="q-thumb" style="margin-top:6px;border:1px solid #4ecdc4;" alt="desenho" title="Desenho incluído">` : ''}</div>`
         }
         ${isVF ? `<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:4px 8px;border-radius:6px;background:var(--bg4);border:1px solid var(--border);">
           <div style="font-size:0.65rem;color:var(--text2);font-family:'DM Mono',monospace;text-transform:uppercase;">Resp.</div>
           <div style="font-size:1.1rem;font-weight:700;color:${x.correta==='V'?'var(--success)':'var(--danger)'};">${x.correta === 'V' ? '✓ V' : '✗ F'}</div>
+        </div>` : ''}
+        ${isDisc ? `<div style="flex-shrink:0;padding:4px 8px;border-radius:6px;background:var(--bg4);border:1px solid var(--border);text-align:center;">
+          <div style="font-size:0.65rem;color:var(--text2);font-family:'DM Mono',monospace;">Linhas</div>
+          <div style="font-size:1rem;font-weight:700;color:var(--accent3);">${x.linhas || 8}</div>
         </div>` : ''}
       </div>
       <div class="q-actions">
@@ -1570,6 +1823,8 @@ function openModalQuestao(id = null) {
   // reset image UI
   document.getElementById('img-preview-container').innerHTML = '';
   document.getElementById('q-imagem-file').value = '';
+  document.getElementById('draw-preview-container').style.display = 'none';
+  drawClearState();
   setImgPos('acima');
   if (id) {
     const q = DB.questoes.find(x => x.id === id);
@@ -1581,7 +1836,17 @@ function openModalQuestao(id = null) {
     document.getElementById('q-obs').value = q.obs || '';
     const tipo = q.tipo || 'multipla';
     setTipoQuestao(tipo);
-    if (tipo === 'vf') {
+    if (tipo === 'discursiva') {
+      if (q.linhas) document.getElementById('q-linhas').value = q.linhas;
+      document.getElementById('linhas-val').textContent = q.linhas || 8;
+      renderLinhasPreview();
+      // Carregar desenho salvo
+      if (q.desenho) {
+        drawLoadFromData(q.desenho);
+      } else {
+        initDrawCanvas();
+      }
+    } else if (tipo === 'vf') {
       renderAltRowsVF(q.correta);
     } else {
       renderAltRowsMultipla();
@@ -1609,8 +1874,20 @@ function setTipoQuestao(tipo) {
   currentTipoQuestao = tipo;
   document.getElementById('tipo-btn-multipla')?.classList.toggle('active', tipo === 'multipla');
   document.getElementById('tipo-btn-vf')?.classList.toggle('active', tipo === 'vf');
-  if (tipo === 'vf') renderAltRowsVF('V');
-  else renderAltRowsMultipla();
+  document.getElementById('tipo-btn-discursiva')?.classList.toggle('active', tipo === 'discursiva');
+  // Mostrar/ocultar seções
+  const isDisc = tipo === 'discursiva';
+  document.getElementById('alt-rows-group').style.display = isDisc ? 'none' : '';
+  document.getElementById('drawing-section').style.display = isDisc ? '' : 'none';
+  document.getElementById('linhas-section').style.display = isDisc ? '' : 'none';
+  if (isDisc) {
+    renderLinhasPreview();
+    initDrawCanvas();
+    document.getElementById('draw-hint').textContent = '✏️ Clique e arraste para desenhar';
+  } else {
+    if (tipo === 'vf') renderAltRowsVF('V');
+    else renderAltRowsMultipla();
+  }
 }
 
 function renderAltRowsMultipla() {
@@ -1693,6 +1970,271 @@ function removeImg() {
   toast('Imagem removida.', 'info');
 }
 
+// ===================== DRAWING ENGINE =====================
+let drawCtx = null, drawCanvas = null;
+let drawTool = 'pen', drawColor = '#111111', drawSize = 1.5;
+let drawIsDrawing = false, drawStart = {x:0,y:0};
+let drawHistory = [], drawSnapshot = null;
+let drawTextInput = null;
+
+function initDrawCanvas(initialData) {
+  drawCanvas = document.getElementById('draw-canvas');
+  if (!drawCanvas) return;
+  const wrap = document.getElementById('draw-canvas-wrap');
+  const W = wrap.clientWidth || 600;
+  const H = Math.round(W * 0.45);
+  drawCanvas.width = W;
+  drawCanvas.height = H;
+  drawCanvas.style.height = H + 'px';
+  drawCtx = drawCanvas.getContext('2d');
+  drawCtx.fillStyle = '#ffffff';
+  drawCtx.fillRect(0, 0, W, H);
+  drawHistory = [];
+  drawSaveHistory();
+  if (initialData) {
+    const img = new Image();
+    img.onload = () => { drawCtx.drawImage(img, 0, 0, W, H); drawSaveHistory(); };
+    img.src = initialData;
+  }
+  drawTextInput = document.getElementById('draw-text-input');
+  // bind events
+  drawCanvas.onmousedown = drawPointerDown;
+  drawCanvas.onmousemove = drawPointerMove;
+  drawCanvas.onmouseup = drawPointerUp;
+  drawCanvas.onmouseleave = drawPointerUp;
+  drawCanvas.ontouchstart = e => { e.preventDefault(); drawPointerDown(drawTouchToMouse(e)); };
+  drawCanvas.ontouchmove  = e => { e.preventDefault(); drawPointerMove(drawTouchToMouse(e)); };
+  drawCanvas.ontouchend   = e => { e.preventDefault(); drawPointerUp(); };
+}
+
+function drawLoadFromData(dataUrl) {
+  // Show preview, don't init editor until user clicks edit
+  const prev = document.getElementById('draw-preview-container');
+  const img  = document.getElementById('draw-preview-img');
+  if (prev && img) { img.src = dataUrl; prev.style.display = ''; }
+  // Still init canvas with data
+  setTimeout(() => initDrawCanvas(dataUrl), 80);
+}
+
+function drawClearState() {
+  drawHistory = [];
+  drawCtx = null;
+  drawCanvas = null;
+}
+
+function drawTouchToMouse(e) {
+  const r = drawCanvas.getBoundingClientRect();
+  const t = e.touches[0] || e.changedTouches[0];
+  return { offsetX: (t.clientX - r.left) * (drawCanvas.width / r.width), offsetY: (t.clientY - r.top) * (drawCanvas.height / r.height) };
+}
+
+function drawGetPos(e) {
+  const r = drawCanvas.getBoundingClientRect();
+  return {
+    x: (e.offsetX !== undefined ? e.offsetX : e.clientX - r.left) * (drawCanvas.width / r.width),
+    y: (e.offsetY !== undefined ? e.offsetY : e.clientY - r.top)  * (drawCanvas.height / r.height)
+  };
+}
+
+function drawPointerDown(e) {
+  if (!drawCtx) return;
+  const pos = drawGetPos(e);
+  drawIsDrawing = true;
+  drawStart = pos;
+  if (drawTool === 'text') {
+    drawIsDrawing = false;
+    placeTextInput(pos);
+    return;
+  }
+  drawSnapshot = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  if (drawTool === 'pen' || drawTool === 'eraser') {
+    drawCtx.beginPath();
+    drawCtx.moveTo(pos.x, pos.y);
+  }
+}
+
+function drawPointerMove(e) {
+  if (!drawIsDrawing || !drawCtx) return;
+  const pos = drawGetPos(e);
+  if (drawTool === 'pen' || drawTool === 'eraser') {
+    drawCtx.lineWidth = drawTool === 'eraser' ? drawSize * 5 : drawSize;
+    drawCtx.strokeStyle = drawTool === 'eraser' ? '#ffffff' : drawColor;
+    drawCtx.lineCap = 'round';
+    drawCtx.lineJoin = 'round';
+    drawCtx.lineTo(pos.x, pos.y);
+    drawCtx.stroke();
+  } else {
+    // restore snapshot then redraw shape preview
+    drawCtx.putImageData(drawSnapshot, 0, 0);
+    drawShape(drawStart, pos, false);
+  }
+}
+
+function drawPointerUp(e) {
+  if (!drawIsDrawing || !drawCtx) return;
+  drawIsDrawing = false;
+  if (e) {
+    const pos = drawGetPos(e);
+    if (drawTool !== 'pen' && drawTool !== 'eraser') {
+      drawCtx.putImageData(drawSnapshot, 0, 0);
+      drawShape(drawStart, pos, true);
+    }
+  }
+  drawSaveHistory();
+}
+
+function drawShape(from, to, final) {
+  const ctx = drawCtx;
+  ctx.strokeStyle = drawColor;
+  ctx.fillStyle = drawColor;
+  ctx.lineWidth = drawSize;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (drawTool === 'line') {
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+  } else if (drawTool === 'rect') {
+    ctx.strokeRect(from.x, from.y, to.x - from.x, to.y - from.y);
+  } else if (drawTool === 'circle') {
+    const rx = Math.abs(to.x - from.x) / 2, ry = Math.abs(to.y - from.y) / 2;
+    const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
+    ctx.ellipse(cx, cy, rx || 1, ry || 1, 0, 0, 2 * Math.PI);
+    ctx.stroke();
+  } else if (drawTool === 'arrow') {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const angle = Math.atan2(dy, dx);
+    const hs = Math.max(10, drawSize * 4);
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(to.x, to.y);
+    ctx.lineTo(to.x - hs * Math.cos(angle - Math.PI/6), to.y - hs * Math.sin(angle - Math.PI/6));
+    ctx.lineTo(to.x - hs * Math.cos(angle + Math.PI/6), to.y - hs * Math.sin(angle + Math.PI/6));
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function placeTextInput(pos) {
+  if (!drawTextInput) return;
+  const wrap = document.getElementById('draw-canvas-wrap');
+  const r = drawCanvas.getBoundingClientRect();
+  const scaleX = r.width / drawCanvas.width;
+  const scaleY = r.height / drawCanvas.height;
+  drawTextInput.style.display = 'block';
+  drawTextInput.style.left = (pos.x * scaleX) + 'px';
+  drawTextInput.style.top  = (pos.y * scaleY - 2) + 'px';
+  drawTextInput.style.fontSize = Math.round(drawSize * 6 + 10) + 'px';
+  drawTextInput.style.color = drawColor;
+  drawTextInput.value = '';
+  drawTextInput.focus();
+  drawTextInput.onkeydown = e => {
+    if (e.key === 'Enter' || e.key === 'Escape') {
+      const txt = drawTextInput.value.trim();
+      if (txt && e.key === 'Enter') {
+        drawCtx.font = `${Math.round(drawSize * 6 + 10)}px 'DM Sans', sans-serif`;
+        drawCtx.fillStyle = drawColor;
+        drawCtx.fillText(txt, pos.x, pos.y + Math.round(drawSize * 4 + 8));
+        drawSaveHistory();
+      }
+      drawTextInput.style.display = 'none';
+      drawTextInput.value = '';
+    }
+  };
+}
+
+function drawSaveHistory() {
+  if (!drawCtx) return;
+  drawHistory.push(drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height));
+  if (drawHistory.length > 40) drawHistory.shift();
+}
+
+function drawUndo() {
+  if (drawHistory.length <= 1) { toast('Nada para desfazer.', 'info'); return; }
+  drawHistory.pop();
+  drawCtx.putImageData(drawHistory[drawHistory.length - 1], 0, 0);
+}
+
+function drawClear() {
+  if (!drawCtx) return;
+  if (!confirm('Limpar todo o desenho?')) return;
+  drawCtx.fillStyle = '#ffffff';
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+  drawSaveHistory();
+}
+
+function setDrawTool(tool) {
+  drawTool = tool;
+  document.querySelectorAll('.draw-tool').forEach(b => b.classList.remove('active'));
+  document.getElementById('dtool-' + tool)?.classList.add('active');
+  const hints = { pen:'✏️ Clique e arraste para desenhar', line:'╱ Clique e arraste para traçar uma linha', rect:'▭ Clique e arraste para um retângulo', circle:'◯ Clique e arraste para uma elipse', arrow:'➜ Clique e arraste para uma seta', text:'T Clique no canvas e digite o texto + Enter', eraser:'⌫ Clique e arraste para apagar' };
+  document.getElementById('draw-hint').textContent = hints[tool] || '';
+}
+
+function setDrawColor(color) {
+  drawColor = color;
+  document.querySelectorAll('.draw-color').forEach(el => el.classList.toggle('active', el.dataset.color === color));
+}
+
+function setDrawSize(size) {
+  drawSize = size;
+  const map = { 1.5: 'dsize-1', 3: 'dsize-2', 6: 'dsize-3' };
+  document.querySelectorAll('.draw-size').forEach(b => b.classList.remove('active'));
+  document.getElementById(map[size])?.classList.add('active');
+}
+
+function drawGetImageData() {
+  if (!drawCanvas || !drawCtx) return null;
+  // Check if canvas has any non-white content
+  const data = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height).data;
+  let hasContent = false;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] < 250 || data[i+1] < 250 || data[i+2] < 250) { hasContent = true; break; }
+  }
+  return hasContent ? drawCanvas.toDataURL('image/png') : null;
+}
+
+function drawImportBg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!drawCtx) initDrawCanvas();
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      drawCtx.drawImage(img, 0, 0, drawCanvas.width, drawCanvas.height);
+      drawSaveHistory();
+      toast('Imagem de fundo inserida!');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function toggleDrawingSection() {
+  const wrap = document.getElementById('draw-canvas-wrap');
+  const toolbar = document.getElementById('draw-toolbar');
+  const btn = document.getElementById('btn-toggle-draw');
+  const hidden = wrap.style.display === 'none';
+  wrap.style.display = hidden ? '' : 'none';
+  toolbar.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '➖ Ocultar editor' : '➕ Mostrar editor';
+}
+
+function renderLinhasPreview() {
+  const n = parseInt(document.getElementById('q-linhas').value) || 8;
+  const el = document.getElementById('linhas-preview');
+  el.innerHTML = Array.from({length: Math.min(n, 5)}).map(() => '<div class="linhas-preview-line"></div>').join('') +
+    (n > 5 ? `<div style="font-size:0.72rem;color:var(--text2);text-align:center;margin-top:4px;">+ ${n - 5} linhas adicionais na impressão</div>` : '');
+  document.getElementById('q-linhas').oninput = function() {
+    document.getElementById('linhas-val').textContent = this.value;
+    renderLinhasPreview();
+  };
+}
+
 function onImgDragOver(e) {
   e.preventDefault();
   document.getElementById('img-drop-zone').classList.add('drag-over');
@@ -1713,13 +2255,20 @@ function salvarQuestao() {
   if (!disc || !enunciado) { toast('Preencha disciplina e enunciado!', 'err'); return; }
   const tipo = currentTipoQuestao;
   let alts = {};
-  if (tipo === 'vf') {
+  let correta = selectedCorrect;
+  if (tipo === 'discursiva') {
+    alts = {};
+    correta = null;
+  } else if (tipo === 'vf') {
     alts = { V: 'Verdadeiro', F: 'Falso' };
     if (!selectedCorrect || !['V','F'].includes(selectedCorrect)) { toast('Defina se a afirmação é Verdadeira ou Falsa!', 'err'); return; }
   } else {
     LETRAS.forEach(l => { alts[l] = document.getElementById('alt-'+l).value.trim(); });
     if (!alts['A'] || !alts['B']) { toast('Preencha ao menos as alternativas A e B!', 'err'); return; }
   }
+  // Capturar desenho se discursiva
+  const desenhoData = (tipo === 'discursiva') ? drawGetImageData() : null;
+  const linhas = (tipo === 'discursiva') ? parseInt(document.getElementById('q-linhas').value) : null;
   const questao = {
     id: editingId || uid(),
     tipo,
@@ -1728,10 +2277,12 @@ function salvarQuestao() {
     nivel: document.getElementById('q-nivel').value,
     enunciado,
     alternativas: alts,
-    correta: selectedCorrect,
+    correta,
     obs: document.getElementById('q-obs').value.trim(),
     imagem: currentImgData || null,
     imagemPos: currentImgData ? currentImgPos : null,
+    desenho: desenhoData,
+    linhas,
     criada: editingId ? DB.questoes.find(x=>x.id===editingId)?.criada : Date.now()
   };
   const arr = DB.questoes;
@@ -1757,34 +2308,43 @@ function viewQuestao(id) {
   const q = DB.questoes.find(x => x.id === id);
   if (!q) return;
   const isVF = (q.tipo || 'multipla') === 'vf';
+  const isDisc = (q.tipo || 'multipla') === 'discursiva';
   const imgHtml = q.imagem ? `<img src="${q.imagem}" style="max-width:100%;max-height:280px;border-radius:6px;border:1px solid var(--border);display:block;margin-bottom:12px;" alt="">` : '';
   const enunciadoHtml = `<p style="font-size:0.95rem;line-height:1.6;margin-bottom:16px;">${q.enunciado}</p>`;
   let contentHtml;
   if (q.imagem && q.imagemPos === 'acima') contentHtml = imgHtml + enunciadoHtml;
   else if (q.imagem && q.imagemPos === 'direita') contentHtml = `<div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;">${enunciadoHtml}<div style="flex-shrink:0;max-width:220px;">${imgHtml}</div></div>`;
   else contentHtml = enunciadoHtml + imgHtml;
-  const respostasHtml = isVF
-    ? `<div style="display:flex;gap:12px;">
+  let respostasHtml = '';
+  if (isDisc) {
+    const desenhoHtml = q.desenho ? `<div style="margin-bottom:12px;"><p style="font-size:0.72rem;color:var(--text2);margin-bottom:6px;">✏️ Desenho da questão:</p><img src="${q.desenho}" style="max-width:100%;border-radius:6px;border:1px solid var(--border);display:block;" alt="desenho"></div>` : '';
+    const nLinhas = q.linhas || 8;
+    respostasHtml = `${desenhoHtml}<div style="margin-top:8px;"><p style="font-size:0.72rem;color:var(--text2);margin-bottom:6px;">Espaço para resposta (${nLinhas} linhas):</p>${Array.from({length:Math.min(nLinhas,5)}).map(()=>'<div style="border-bottom:1px solid #555;height:20px;margin-bottom:3px;"></div>').join('')}${nLinhas>5?`<span style="font-size:0.7rem;color:var(--text2);">+ ${nLinhas-5} linhas adicionais</span>`:''}</div>`;
+  } else if (isVF) {
+    respostasHtml = `<div style="display:flex;gap:12px;">
         <div style="flex:1;padding:12px;border-radius:8px;border:2px solid ${q.correta==='V'?'var(--success)':'var(--border)'};background:${q.correta==='V'?'rgba(78,205,196,0.1)':'var(--bg3)'};text-align:center;">
           <div style="font-size:1.3rem;">✓</div><div style="font-size:0.85rem;font-weight:600;color:${q.correta==='V'?'var(--success)':'var(--text2)'};">Verdadeiro${q.correta==='V'?' ✅':''}</div>
         </div>
         <div style="flex:1;padding:12px;border-radius:8px;border:2px solid ${q.correta==='F'?'var(--danger)':'var(--border)'};background:${q.correta==='F'?'rgba(255,107,107,0.1)':'var(--bg3)'};text-align:center;">
           <div style="font-size:1.3rem;">✗</div><div style="font-size:0.85rem;font-weight:600;color:${q.correta==='F'?'var(--danger)':'var(--text2)'};">Falso${q.correta==='F'?' ✅':''}</div>
         </div>
-      </div>`
-    : LETRAS.filter(l => q.alternativas[l]).map(l => `
+      </div>`;
+  } else {
+    respostasHtml = LETRAS.filter(l => q.alternativas[l]).map(l => `
         <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;">
           <div class="alt-letter ${l===q.correta?'correct':''}" style="flex-shrink:0;">${l}</div>
           <span style="font-size:0.85rem;padding-top:4px;${l===q.correta?'color:var(--accent);font-weight:600;':''}">${q.alternativas[l]}</span>
         </div>`).join('');
+  }
   document.getElementById('modal-view-content').innerHTML = `
     <div style="margin-bottom:12px;">
       <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
         <span class="badge badge-${q.nivel==='Fácil'?'easy':q.nivel==='Médio'?'medium':'hard'}">${q.nivel}</span>
-        ${isVF ? '<span class="badge badge-vf">V/F</span>' : ''}
+        ${isVF ? '<span class="badge badge-vf">V/F</span>' : isDisc ? '<span class="badge" style="background:#1a2a1a;color:#4ecdc4;">DISC</span>' : ''}
         <span class="badge badge-a">${q.disciplina}</span>
         <span class="badge badge-b">${q.assunto}</span>
         ${q.imagem ? '<span class="q-has-img">🖼 com imagem</span>' : ''}
+        ${q.desenho ? '<span class="q-has-img">✏️ com desenho</span>' : ''}
       </div>
       ${contentHtml}
       ${respostasHtml}
@@ -1880,15 +2440,26 @@ function updateMontagem() {
   document.getElementById('count-disp').textContent = q.length;
   const el = document.getElementById('montagem-list');
   if (q.length === 0) { el.innerHTML = '<div class="empty-state"><div class="icon">📚</div><p>Nenhuma questão disponível.</p></div>'; return; }
-  el.innerHTML = q.map(x => `
+  el.innerHTML = q.map(x => {
+    const isVF   = (x.tipo || 'multipla') === 'vf';
+    const isDisc = (x.tipo || 'multipla') === 'discursiva';
+    const tipoBadge = isVF
+      ? '<span class="badge badge-vf">V/F</span>'
+      : isDisc
+        ? '<span class="badge" style="background:#1a2a1a;color:#4ecdc4;">DISC</span>'
+        : '<span class="badge" style="background:#252532;color:#9999b3;">ME</span>';
+    return `
     <div class="q-card" style="padding-left:38px;">
       <div class="q-check"><input type="checkbox" value="${x.id}" id="chk-${x.id}" onchange="toggleSel('${x.id}')" ${questoesSelecionadas.includes(x.id)?'checked':''}></div>
       <div class="q-card-header">
         <span class="badge badge-${x.nivel==='Fácil'?'easy':x.nivel==='Médio'?'medium':'hard'}">${x.nivel}</span>
+        ${tipoBadge}
         <span class="badge badge-a">${x.disciplina}</span>
+        ${x.desenho ? '<span class="q-has-img">✏️</span>' : ''}
       </div>
-      <div class="q-enunciado">${x.enunciado.slice(0,120)}…</div>
-    </div>`).join('');
+      <div class="q-enunciado">${x.enunciado.slice(0,120)}${x.enunciado.length > 120 ? '…' : ''}</div>
+    </div>`;
+  }).join('');
   renderSelecionadas();
 }
 
@@ -2002,6 +2573,7 @@ function renderVersoes() {
           <h2 style="font-family:'DM Serif Display',serif;font-size:1.1rem;">${p.titulo}</h2>
           <span style="font-family:'DM Mono',monospace;font-size:0.75rem;color:var(--text2);">${p.codigo} — ${p.questoes.length} questões — ${p.versoes.length} versão(ões)</span>
         </div>
+        <button class="btn btn-secondary btn-sm" onclick="abrirEdicaoProva('${p.id}')">✏️ Editar Prova</button>
         <button class="btn btn-danger btn-sm" onclick="excluirProva('${p.id}')">🗑 Excluir</button>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;">
@@ -2010,12 +2582,13 @@ function renderVersoes() {
             <div class="versao-qr" id="qr-${p.id}-${v.versao}"></div>
             <div class="versao-info">
               <h3>Versão ${v.versao} — ${p.codigo}</h3>
-              <p>${p.questoes.length}Q · Hash: ${v.hash}</p>
+              <p>${v.questoes.length}Q · Hash: ${v.hash}</p>
               <p>Gabarito: <code style="font-family:'DM Mono',monospace;font-size:0.7rem;">${v.gabarito}</code></p>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px;">
               <button class="btn btn-secondary btn-sm" onclick="imprimirVersao('${p.id}','${v.versao}')">🖨️ Imprimir</button>
               <button class="btn btn-secondary btn-sm" onclick="imprimirFolhaResposta('${p.id}','${v.versao}')">📋 Folha</button>
+              <button class="btn btn-secondary btn-sm" onclick="imprimirGabarito('${p.id}','${v.versao}')">🗝 Gabarito</button>
             </div>
           </div>`).join('')}
       </div>
@@ -2026,7 +2599,7 @@ function renderVersoes() {
       p.versoes.forEach(v => {
         const el = document.getElementById(`qr-${p.id}-${v.versao}`);
         if (!el || el.querySelector('canvas')) return;
-        const qrData = JSON.stringify({ prova: p.codigo, versao: v.versao, questoes: p.questoes.length, hash: v.hash });
+        const qrData = JSON.stringify({ prova: p.codigo, versao: v.versao, questoes: v.questoes.length, hash: v.hash });
         try { new QRCode(el, { text: qrData, width: 64, height: 64, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M }); } catch(e) {}
       });
     });
@@ -2040,46 +2613,270 @@ function excluirProva(id) {
   toast('Prova excluída.');
 }
 
+// ===================== EDIÇÃO DE PROVA =====================
+let editProvaId = null;
+let editVersaoAtiva = null;
+
+function abrirEdicaoProva(provaId) {
+  editProvaId = provaId;
+  const p = DB.provas.find(x => x.id === provaId);
+  if (!p) return;
+  editVersaoAtiva = p.versoes[0]?.versao || null;
+  document.getElementById('edit-prova-titulo').textContent = p.titulo;
+  document.getElementById('edit-prova-meta').textContent = `${p.codigo} · ${p.versoes.length} versão(ões)`;
+  renderEditTabs(p);
+  renderEditVersao(p, editVersaoAtiva);
+  renderEditBancoDisponivel(p);
+  openModal('modal-edit-prova');
+}
+
+function renderEditTabs(p) {
+  const el = document.getElementById('edit-versao-tabs');
+  el.innerHTML = p.versoes.map(v => `
+    <button type="button" class="tab ${v.versao === editVersaoAtiva ? 'active' : ''}"
+      onclick="editSwitchVersao('${v.versao}')">
+      Versão ${v.versao}
+    </button>`).join('');
+}
+
+function editSwitchVersao(versaoNome) {
+  editVersaoAtiva = versaoNome;
+  const p = DB.provas.find(x => x.id === editProvaId);
+  if (!p) return;
+  renderEditTabs(p);
+  renderEditVersao(p, versaoNome);
+}
+
+function renderEditVersao(p, versaoNome) {
+  const v = p.versoes.find(x => x.versao === versaoNome);
+  if (!v) return;
+  const el = document.getElementById('edit-questoes-list');
+  if (v.questoes.length === 0) {
+    el.innerHTML = '<div style="font-size:0.83rem;color:var(--text2);text-align:center;padding:20px 0;">Nenhuma questão nesta versão.</div>';
+  } else {
+    el.innerHTML = v.questoes.map((q, i) => {
+      const isDisc = (q.tipo || 'multipla') === 'discursiva';
+      const isVF   = (q.tipo || 'multipla') === 'vf';
+      const tipoBadge = isDisc
+        ? '<span class="badge" style="background:#1a2a1a;color:#4ecdc4;font-size:0.62rem;">DISC</span>'
+        : isVF
+          ? '<span class="badge badge-vf" style="font-size:0.62rem;">V/F</span>'
+          : '<span class="badge" style="background:#252532;color:#9999b3;font-size:0.62rem;">ME</span>';
+      return `<div class="survey-row" id="edit-q-${i}" draggable="true"
+          ondragstart="editDragStart(event,${i})"
+          ondragover="editDragOver(event,${i})"
+          ondrop="editDrop(event,${i})"
+          ondragend="editDragEnd()">
+        <span class="drag-handle" title="Arrastar para reordenar">⠿</span>
+        <span style="font-size:0.75rem;color:var(--text2);font-family:'DM Mono',monospace;min-width:22px;">${i+1}.</span>
+        ${tipoBadge}
+        <span style="flex:1;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+          title="${q.enunciado}">${q.enunciado.slice(0,90)}${q.enunciado.length>90?'…':''}</span>
+        <span class="badge badge-a" style="flex-shrink:0;font-size:0.62rem;">${q.disciplina}</span>
+        <button class="btn btn-danger btn-sm" style="flex-shrink:0;" onclick="editRemoverQuestao(${i})" title="Remover desta versão">✕</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('edit-versao-info').textContent =
+    `${v.questoes.length} questão(ões) · Gabarito: ${v.gabarito || '—'}`;
+}
+
+function renderEditBancoDisponivel(p) {
+  const search = document.getElementById('edit-banco-search')?.value.toLowerCase() || '';
+  const v = p.versoes.find(x => x.versao === editVersaoAtiva);
+  const idsNaVersao = new Set((v?.questoes || []).map(q => q.originalId || q.id));
+  let disponiveis = DB.questoes.filter(q =>
+    !idsNaVersao.has(q.id) &&
+    (!search || q.enunciado.toLowerCase().includes(search) ||
+      q.disciplina.toLowerCase().includes(search) ||
+      (q.assunto||'').toLowerCase().includes(search))
+  );
+  const el = document.getElementById('edit-banco-list');
+  if (disponiveis.length === 0) {
+    el.innerHTML = '<div style="font-size:0.8rem;color:var(--text2);text-align:center;padding:16px 0;">Nenhuma questão disponível para adicionar.</div>';
+    return;
+  }
+  el.innerHTML = disponiveis.map(q => {
+    const isDisc = (q.tipo || 'multipla') === 'discursiva';
+    const isVF   = (q.tipo || 'multipla') === 'vf';
+    const tipoBadge = isDisc
+      ? '<span class="badge" style="background:#1a2a1a;color:#4ecdc4;font-size:0.6rem;">DISC</span>'
+      : isVF
+        ? '<span class="badge badge-vf" style="font-size:0.6rem;">V/F</span>'
+        : '<span class="badge" style="background:#252532;color:#9999b3;font-size:0.6rem;">ME</span>';
+    return `<div class="survey-row">
+      ${tipoBadge}
+      <span class="badge badge-a" style="font-size:0.6rem;flex-shrink:0;">${q.disciplina}</span>
+      <span style="flex:1;font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+        title="${q.enunciado}">${q.enunciado.slice(0,80)}${q.enunciado.length>80?'…':''}</span>
+      <button class="btn btn-success btn-sm" style="flex-shrink:0;" onclick="editAdicionarQuestao('${q.id}')" title="Adicionar a esta versão">＋</button>
+    </div>`;
+  }).join('');
+}
+
+function editAdicionarQuestao(questaoId) {
+  const arr = DB.provas;
+  const p = arr.find(x => x.id === editProvaId);
+  if (!p) return;
+  const v = p.versoes.find(x => x.versao === editVersaoAtiva);
+  if (!v) return;
+  const q = DB.questoes.find(x => x.id === questaoId);
+  if (!q) return;
+  // Adiciona no final com originalId marcado
+  v.questoes.push({ ...q, originalId: q.id });
+  editRecalcGabarito(v);
+  DB.provas = arr;
+  renderEditVersao(p, editVersaoAtiva);
+  renderEditBancoDisponivel(p);
+  toast(`Questão adicionada à Versão ${editVersaoAtiva}.`);
+}
+
+function editRemoverQuestao(idx) {
+  const arr = DB.provas;
+  const p = arr.find(x => x.id === editProvaId);
+  if (!p) return;
+  const v = p.versoes.find(x => x.versao === editVersaoAtiva);
+  if (!v) return;
+  if (v.questoes.length <= 1) { toast('A versão precisa ter ao menos 1 questão.', 'err'); return; }
+  v.questoes.splice(idx, 1);
+  editRecalcGabarito(v);
+  DB.provas = arr;
+  renderEditVersao(p, editVersaoAtiva);
+  renderEditBancoDisponivel(p);
+  toast('Questão removida.');
+}
+
+function editRecalcGabarito(v) {
+  v.gabarito = v.questoes.map(q => q.correta || '—').join('');
+  const hashData = editProvaId + v.versao + v.gabarito;
+  v.hash = hash6(hashData);
+}
+
+// Drag-and-drop reordering inside versao
+let editDragIdx = null;
+
+function editDragStart(e, idx) {
+  editDragIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+  setTimeout(() => { const el = document.getElementById('edit-q-'+idx); if(el) el.style.opacity = '0.4'; }, 0);
+}
+
+function editDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('[id^="edit-q-"]').forEach(el => el.style.borderTop = '');
+  const el = document.getElementById('edit-q-'+idx);
+  if (el && idx !== editDragIdx) el.style.borderTop = '2px solid var(--accent)';
+}
+
+function editDrop(e, idx) {
+  e.preventDefault();
+  if (editDragIdx === null || editDragIdx === idx) return;
+  const arr = DB.provas;
+  const p = arr.find(x => x.id === editProvaId);
+  const v = p?.versoes.find(x => x.versao === editVersaoAtiva);
+  if (!v) return;
+  const [moved] = v.questoes.splice(editDragIdx, 1);
+  v.questoes.splice(idx, 0, moved);
+  editRecalcGabarito(v);
+  DB.provas = arr;
+  editDragIdx = null;
+  renderEditVersao(p, editVersaoAtiva);
+}
+
+function editDragEnd() {
+  editDragIdx = null;
+  document.querySelectorAll('[id^="edit-q-"]').forEach(el => {
+    el.style.opacity = '';
+    el.style.borderTop = '';
+  });
+}
+
+function salvarEdicaoProva() {
+  // Sync p.questoes (IDs) to reflect all unique questoes across versoes
+  const arr = DB.provas;
+  const p = arr.find(x => x.id === editProvaId);
+  if (p) {
+    const allIds = new Set();
+    p.versoes.forEach(v => v.questoes.forEach(q => allIds.add(q.originalId || q.id)));
+    p.questoes = [...allIds];
+  }
+  DB.provas = arr;
+  closeModal('modal-edit-prova');
+  renderVersoes();
+  toast('Prova salva com sucesso!');
+}
+
 // ===================== IMPRESSÃO =====================
-function buildPrintWindow(htmlBody, qrData, qrElId) {
-  const win = window.open('', '_blank', 'width=900,height=700');
+// Print configuration state
+const printConfig = { cols: 1, font: 'md' };
+
+function setPrintCols(n) {
+  printConfig.cols = n;
+  document.getElementById('print-col-1').classList.toggle('active', n === 1);
+  document.getElementById('print-col-2').classList.toggle('active', n === 2);
+}
+
+function setPrintFont(size) {
+  printConfig.font = size;
+  ['sm','md','lg'].forEach(s => document.getElementById('print-font-'+s).classList.toggle('active', s === size));
+}
+
+function buildPrintWindow(htmlBody, qrData, qrElId, cfg) {
+  cfg = cfg || { cols: 1, font: 'md' };
+  const fontScale = cfg.font === 'sm' ? 0.82 : cfg.font === 'lg' ? 1.08 : 0.92;
+  const altFontScale = cfg.font === 'sm' ? 0.76 : cfg.font === 'lg' ? 0.96 : 0.88;
+  const colsStyle = cfg.cols === 2
+    ? `#questoes-wrap { column-count: 2; column-gap: 20px; } .questao { break-inside: avoid; page-break-inside: avoid; }`
+    : `#questoes-wrap { column-count: 1; }`;
+  const win = window.open('', '_blank', 'width=960,height=700');
+  win.document.open('text/html', 'replace');
   win.document.write(`<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Impressão — ProvaSystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><\/script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; color: #111; background: white; padding: 20px; }
-  .no-print { display: flex; gap: 10px; justify-content: flex-end; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 2px dashed #ccc; }
+  body { font-family: 'DM Sans', sans-serif; color: #111; background: white; padding: 20px; font-size: ${fontScale}rem; }
+  .no-print { display: flex; gap: 10px; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 2px dashed #ccc; flex-wrap: wrap; }
+  .no-print-actions { display: flex; gap: 8px; }
+  .no-print-info { font-size: 0.75rem; color: #777; font-family: 'DM Mono', monospace; }
   .no-print button {
     padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer;
     font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
   }
   .btn-print { background: #e8c547; color: #1a1a10; }
   .btn-close { background: #eee; color: #333; }
-  .prova-header { border: 2px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
-  .questao { margin-bottom: 22px; page-break-inside: avoid; }
-  .questao p { margin-bottom: 8px; line-height: 1.6; font-size: 0.92rem; }
-  .alt-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 5px; padding-left: 16px; }
-  .alt-bubble { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid #333; display: inline-flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
-  .alt-text { font-size: 0.88rem; line-height: 1.5; }
+  .prova-header { border: 2px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; }
+  .questao { margin-bottom: 18px; page-break-inside: avoid; }
+  .questao p { margin-bottom: 6px; line-height: 1.6; font-size: ${fontScale}rem; }
+  .alt-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 4px; padding-left: 14px; }
+  .alt-bubble { width: 19px; height: 19px; border-radius: 50%; border: 1.5px solid #333; display: inline-flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 600; flex-shrink: 0; margin-top: 2px; }
+  .alt-text { font-size: ${altFontScale}rem; line-height: 1.5; }
   .folha-bubble { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid #444; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 600; }
-  .rodape { margin-top: 24px; border-top: 1px solid #ccc; padding-top: 10px; display: flex; justify-content: space-between; font-size: 0.7rem; color: #888; font-family: 'DM Mono', monospace; }
+  .rodape { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; display: flex; justify-content: space-between; font-size: 0.68rem; color: #888; font-family: 'DM Mono', monospace; }
+  ${colsStyle}
   @media print {
-    @page { margin: 15mm 15mm 15mm 15mm; size: A4; }
+    @page { margin: 12mm 12mm 12mm 12mm; size: A4; }
     body { padding: 0; }
     .no-print { display: none !important; }
-    .questao { page-break-inside: avoid; }
+    .questao { page-break-inside: avoid; break-inside: avoid; }
   }
 </style>
 </head>
 <body>
   <div class="no-print">
-    <button class="btn-close" onclick="window.close()">✕ Fechar</button>
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    <span class="no-print-info">📄 ${cfg.cols === 2 ? '2 colunas' : '1 coluna'} &nbsp;·&nbsp; Fonte: ${cfg.font === 'sm' ? 'Pequena' : cfg.font === 'lg' ? 'Grande' : 'Normal'}</span>
+    <div class="no-print-actions">
+      <button class="btn-close" onclick="window.close()">✕ Fechar</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    </div>
   </div>
   ${htmlBody}
 </body>
@@ -2118,6 +2915,13 @@ function imprimirVersao(provaId, versaoNome) {
     if (q.imagem && q.imagemPos === 'acima') bodyHtml = imgHtml + enuncHtml;
     else if (q.imagem && q.imagemPos === 'direita') bodyHtml = `<div style="display:flex;gap:14px;align-items:flex-start;">${enuncHtml}<div style="flex-shrink:0;max-width:200px;">${imgHtml}</div></div>`;
     else bodyHtml = enuncHtml + imgHtml;
+    const isDisc = (q.tipo || 'multipla') === 'discursiva';
+    if (isDisc) {
+      const desenhoHtml = q.desenho ? `<img src="${q.desenho}" style="max-width:100%;max-height:200px;border-radius:4px;border:1px solid #ccc;display:block;margin:8px 0;" alt="desenho">` : '';
+      const nLinhas = q.linhas || 8;
+      const linhasHtml = Array.from({length: nLinhas}).map(() => '<div style="border-bottom:1px solid #bbb;height:22px;margin-bottom:2px;"></div>').join('');
+      return `<div class="questao">${bodyHtml}${desenhoHtml}<div style="margin-top:10px;">${linhasHtml}</div></div>`;
+    }
     const altsHtml = LETRAS.filter(l => q.alternativas[l]).map(l => `
       <div class="alt-row">
         <div class="alt-bubble">${l}</div>
@@ -2127,19 +2931,23 @@ function imprimirVersao(provaId, versaoNome) {
   }).join('');
 
   // ---- Bloco de gabarito integrado ----
+  // Separar objetivas e discursivas
+  const questoesObj = v.questoes.map((q, i) => ({...q, _num: i+1})).filter(q => (q.tipo || 'multipla') !== 'discursiva');
+  const questoesDisc = v.questoes.map((q, i) => ({...q, _num: i+1})).filter(q => (q.tipo || 'multipla') === 'discursiva');
   const nq = v.questoes.length;
-  // Distribui as questões em colunas de até 20 linhas cada
+  const nqObj = questoesObj.length;
+
   const LINHAS_COL = 20;
-  const numCols = Math.ceil(nq / LINHAS_COL);
-  const questoesPorCol = Math.ceil(nq / numCols);
+  const numCols = nqObj > 0 ? Math.ceil(nqObj / LINHAS_COL) : 0;
+  const questoesPorCol = nqObj > 0 ? Math.ceil(nqObj / numCols) : 0;
 
   const colunaGabHtml = (inicio, fim) => {
     let rows = '';
-    for (let i = inicio; i < fim && i < nq; i++) {
-      const q = v.questoes[i];
-      const alts = LETRAS.filter(l => q.alternativas[l]);
+    for (let i = inicio; i < fim && i < nqObj; i++) {
+      const q = questoesObj[i];
+      const alts = (q.tipo === 'vf') ? ['V','F'] : LETRAS.filter(l => q.alternativas[l]);
       rows += `<tr>
-        <td style="text-align:right;padding:2px 5px 2px 0;font-size:0.7rem;font-weight:600;color:#444;font-family:'DM Mono',monospace;white-space:nowrap;">${i + 1}</td>
+        <td style="text-align:right;padding:2px 5px 2px 0;font-size:0.7rem;font-weight:600;color:#444;font-family:'DM Mono',monospace;white-space:nowrap;">${q._num}</td>
         ${alts.map(l => `<td style="padding:2px 3px;">
           <div style="width:18px;height:18px;border-radius:50%;border:1.2px solid #555;display:flex;align-items:center;justify-content:center;font-size:0.58rem;font-weight:700;color:#333;">${l}</div>
         </td>`).join('')}
@@ -2154,21 +2962,38 @@ function imprimirVersao(provaId, versaoNome) {
     return rows;
   };
 
-  const colunasHtml = Array.from({ length: numCols }, (_, c) => {
+  const colunasHtml = nqObj > 0 ? Array.from({ length: numCols }, (_, c) => {
     const ini = c * questoesPorCol;
     const fim = ini + questoesPorCol;
+    const firstQ = questoesObj[ini];
+    const maxAlts = firstQ ? ((firstQ.tipo === 'vf') ? 2 : LETRAS.filter(l => firstQ.alternativas[l]).length) : 5;
+    const headerAlts = firstQ
+      ? ((firstQ.tipo === 'vf') ? ['V','F'] : LETRAS.slice(0, maxAlts))
+      : LETRAS.slice(0, 5);
     return `<table style="border-collapse:collapse;margin-right:${c < numCols - 1 ? '18px' : '0'};">
       <thead>
         <tr>
           <th style="font-size:0.6rem;color:#888;text-transform:uppercase;letter-spacing:.04em;padding:0 5px 4px 0;text-align:right;font-weight:500;">Nº</th>
-          ${LETRAS.slice(0, LETRAS.filter(l => v.questoes[ini]?.alternativas[l]).length || 5).map(l =>
-            `<th style="font-size:0.6rem;color:#888;text-transform:uppercase;padding:0 3px 4px;font-weight:500;">${l}</th>`).join('')}
+          ${headerAlts.map(l => `<th style="font-size:0.6rem;color:#888;text-transform:uppercase;padding:0 3px 4px;font-weight:500;">${l}</th>`).join('')}
           <th style="font-size:0.6rem;color:#888;text-transform:uppercase;padding:0 0 4px 8px;border-left:1px dashed #bbb;font-weight:500;" colspan="2">Correção</th>
         </tr>
       </thead>
       <tbody>${colunaGabHtml(ini, fim)}</tbody>
     </table>`;
-  }).join('');
+  }).join('') : '<span style="font-size:0.75rem;color:#888;">Esta prova não contém questões objetivas.</span>';
+
+  // Linha de notas para discursivas
+  const discGabHtml = questoesDisc.length > 0 ? `
+    <div style="margin-top:${nqObj > 0 ? '10px' : '0'};padding-top:${nqObj > 0 ? '10px' : '0'};${nqObj > 0 ? 'border-top:1px dashed #ccc;' : ''}">
+      <div style="font-size:0.6rem;text-transform:uppercase;color:#888;letter-spacing:.05em;font-weight:600;margin-bottom:6px;">Questões Discursivas — Nota por questão</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        ${questoesDisc.map(q => `<div style="display:flex;align-items:center;gap:4px;border:1px solid #ccc;border-radius:4px;padding:3px 8px;">
+          <span style="font-size:0.68rem;font-weight:700;color:#444;font-family:'DM Mono',monospace;">${q._num}</span>
+          <div style="width:42px;border-bottom:1px solid #aaa;"></div>
+          <span style="font-size:0.6rem;color:#888;">/ ${p.valor.toFixed(1)}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : '';
 
   const gabaritoHtml = `
     <div style="border:1.5px solid #333;border-radius:8px;margin-bottom:22px;overflow:hidden;">
@@ -2178,16 +3003,19 @@ function imprimirVersao(provaId, versaoNome) {
       </div>
       <div style="padding:12px 14px;">
         <div style="display:flex;align-items:flex-start;flex-wrap:wrap;gap:6px;">
-          ${colunasHtml}
+          <div>${colunasHtml}${discGabHtml}</div>
           <div style="flex:1;min-width:140px;margin-left:auto;align-self:stretch;">
             <div style="border:1px solid #ccc;border-radius:6px;padding:10px 12px;height:100%;display:flex;flex-direction:column;justify-content:space-between;min-height:80px;">
               <div>
                 <div style="font-size:0.6rem;text-transform:uppercase;color:#888;letter-spacing:.05em;margin-bottom:6px;font-weight:600;">Resultado Final</div>
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-                  <span style="font-size:0.68rem;color:#555;">Acertos:</span>
+                ${nqObj > 0 ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                  <span style="font-size:0.68rem;color:#555;">Obj. (${nqObj}Q):</span>
                   <div style="flex:1;border-bottom:1px solid #aaa;"></div>
-                  <span style="font-size:0.68rem;color:#555;">/ ${nq}</span>
-                </div>
+                </div>` : ''}
+                ${questoesDisc.length > 0 ? `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+                  <span style="font-size:0.68rem;color:#555;">Disc. (${questoesDisc.length}Q):</span>
+                  <div style="flex:1;border-bottom:1px solid #aaa;"></div>
+                </div>` : ''}
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
                   <span style="font-size:0.68rem;color:#555;">Nota:</span>
                   <div style="flex:1;border-bottom:1px solid #aaa;"></div>
@@ -2216,13 +3044,13 @@ function imprimirVersao(provaId, versaoNome) {
           <div><span style="font-size:0.65rem;text-transform:uppercase;color:#888;letter-spacing:.05em;">Data</span><div style="border-bottom:1.5px solid #333;height:22px;margin-top:2px;"></div></div>
         </div>
       </div>
-      <div style="width:42px;height:42px;border-radius:50%;background:#e8c547;display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:bold;flex-shrink:0;">${v.versao}</div>
+
     </div>
     ${gabaritoHtml}
-    ${questoesHtml}
+    <div id="questoes-wrap">${questoesHtml}</div>
     <div class="rodape"><span>${p.codigo} · Versão ${v.versao} · Hash: ${v.hash}</span><span>ProvaSystem</span></div>`;
 
-  buildPrintWindow(html, qrData, 'qr-print-prova');
+  buildPrintWindow(html, qrData, 'qr-print-prova', { ...printConfig });
 }
 
 function imprimirFolhaResposta(provaId, versaoNome) {
@@ -2259,7 +3087,7 @@ function imprimirFolhaResposta(provaId, versaoNome) {
     </div>
     <div class="rodape"><span>${p.codigo} · Versão ${v.versao} · Hash: ${v.hash}</span><span>ProvaSystem</span></div>`;
 
-  buildPrintWindow(html, qrData, 'qr-print-folha');
+  buildPrintWindow(html, qrData, 'qr-print-folha', { ...printConfig });
 }
 
 // ===================== CORREÇÃO MANUAL =====================
@@ -2787,6 +3615,207 @@ function loadExportarSelects() {
   sel.innerHTML = '<option value="">-- Selecione --</option>' + DB.provas.flatMap(p =>
     p.versoes.map(v => `<option value="${p.id}|${v.versao}">${p.titulo} — Versão ${v.versao}</option>`)
   ).join('');
+  const gsel = document.getElementById('gab-prova-sel');
+  if (gsel) {
+    gsel.innerHTML = '<option value="">-- Todas as provas --</option>' + DB.provas.map(p =>
+      `<option value="${p.id}">${p.titulo} (${p.codigo})</option>`
+    ).join('');
+  }
+}
+
+function imprimirGabaritoSel() {
+  const provaId = document.getElementById('gab-prova-sel').value;
+  if (provaId) {
+    imprimirGabarito(provaId, null); // todas as versões dessa prova
+  } else {
+    if (DB.provas.length === 0) { toast('Nenhuma prova gerada.', 'err'); return; }
+    imprimirGabaritoTodas();
+  }
+}
+
+function imprimirGabarito(provaId, versaoNome) {
+  const provas = versaoNome
+    ? [DB.provas.find(x => x.id === provaId)].filter(Boolean)
+    : [DB.provas.find(x => x.id === provaId)].filter(Boolean);
+  if (!provas.length) { toast('Prova não encontrada.', 'err'); return; }
+  const p = provas[0];
+  const versoes = versaoNome
+    ? p.versoes.filter(v => v.versao === versaoNome)
+    : p.versoes;
+  _abrirJanelaGabarito([{ prova: p, versoes }]);
+}
+
+function imprimirGabaritoTodas() {
+  const grupos = DB.provas.map(p => ({ prova: p, versoes: p.versoes }));
+  _abrirJanelaGabarito(grupos);
+}
+
+function _abrirJanelaGabarito(grupos) {
+  const LETRAS = ['A','B','C','D','E'];
+
+  const blocos = grupos.map(({ prova: p, versoes }) => {
+    const versoesHtml = versoes.map(v => {
+      // Separar objetivas de discursivas
+      const objetivas = v.questoes.filter(q => (q.tipo || 'multipla') !== 'discursiva');
+      const discursivas = v.questoes.filter(q => (q.tipo || 'multipla') === 'discursiva');
+
+      // Grade de gabarito das objetivas
+      const gradeHtml = objetivas.length > 0 ? (() => {
+        const COLS = 5; // questões por coluna
+        const linhas = Math.ceil(objetivas.length / COLS);
+        let tabelaHtml = `<table style="border-collapse:collapse;width:100%;margin-top:10px;">
+          <thead><tr>
+            ${Array.from({length: COLS}, (_, c) => {
+              const qIdx = c; // cabeçalho por coluna — apenas Nº e alternativas
+              const q = objetivas[qIdx];
+              const alts = q ? (q.tipo === 'vf' ? ['V','F'] : LETRAS.filter(l => q.alternativas[l])) : LETRAS.slice(0,5);
+              return `<th colspan="${alts.length + 1}" style="padding:0 14px 4px 0;text-align:left;font-size:0.6rem;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #333;">${c===0?'Questão / Resposta':''}</th>`;
+            }).join('')}
+          </tr></thead>
+          <tbody>`;
+
+        for (let row = 0; row < linhas; row++) {
+          const cells = Array.from({length: COLS}, (_, col) => {
+            const idx = col * linhas + row;
+            if (idx >= objetivas.length) return '<td colspan="6" style="padding:3px 14px 3px 0;"></td>';
+            const q = objetivas[idx];
+            // número global na versão
+            const numGlobal = v.questoes.indexOf(q) + 1 || (idx + 1);
+            const isVF = q.tipo === 'vf';
+            const alts = isVF ? ['V','F'] : LETRAS.filter(l => q.alternativas[l]);
+            const bols = alts.map(l => {
+              const isCorreta = l === q.correta;
+              return `<td style="padding:3px 2px;text-align:center;vertical-align:middle;">
+                <div style="width:22px;height:22px;border-radius:50%;
+                  background:${isCorreta ? '#1a1a1a' : 'transparent'};
+                  border:1.5px solid ${isCorreta ? '#1a1a1a' : '#bbb'};
+                  display:inline-flex;align-items:center;justify-content:center;
+                  font-size:0.6rem;font-weight:700;
+                  color:${isCorreta ? '#fff' : '#aaa'};">${l}</div>
+              </td>`;
+            }).join('');
+            return `<td style="padding:3px 6px 3px 0;text-align:right;font-size:0.72rem;font-weight:700;color:#222;font-family:'DM Mono',monospace;white-space:nowrap;vertical-align:middle;">${numGlobal}.</td>${bols}`;
+          });
+          tabelaHtml += `<tr style="border-bottom:1px solid #eee;">${cells.join('<td style="padding:0 10px;border-left:1px dashed #ddd;"></td>')}</tr>`;
+        }
+        tabelaHtml += '</tbody></table>';
+        return tabelaHtml;
+      })() : '<p style="font-size:0.78rem;color:#888;margin-top:8px;">Nenhuma questão objetiva nesta versão.</p>';
+
+      // Bloco das discursivas (só indica que existem e o espaço de nota)
+      const discHtml = discursivas.length > 0 ? `
+        <div style="margin-top:10px;padding-top:8px;border-top:1px dashed #ccc;">
+          <div style="font-size:0.65rem;text-transform:uppercase;color:#888;letter-spacing:.05em;font-weight:600;margin-bottom:6px;">Questões Discursivas</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${discursivas.map(q => {
+              const numGlobal = v.questoes.indexOf(q) + 1;
+              const critHtml = q.obs ? `<span style="font-size:0.58rem;color:#666;margin-left:4px;">(${q.obs.slice(0,40)}${q.obs.length>40?'…':''})</span>` : '';
+              return `<div style="border:1px solid #ccc;border-radius:4px;padding:3px 8px;display:inline-flex;align-items:center;gap:5px;">
+                <span style="font-size:0.68rem;font-weight:700;color:#444;font-family:'DM Mono',monospace;">Q${numGlobal}</span>
+                <span style="font-size:0.65rem;color:#555;">Nota:</span>
+                <div style="width:36px;border-bottom:1px solid #999;"></div>
+                <span style="font-size:0.65rem;color:#888;">/ ${p.valor.toFixed(1)}</span>
+                ${critHtml}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : '';
+
+      return `
+        <div style="margin-bottom:14px;padding:12px 14px;border:1.2px solid #ccc;border-radius:8px;break-inside:avoid;page-break-inside:avoid;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:#1a1a1a;color:#fff;
+                display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;
+                font-family:'DM Serif Display',Georgia,serif;flex-shrink:0;">${v.versao}</div>
+              <div>
+                <div style="font-size:0.85rem;font-weight:700;color:#111;">Versão ${v.versao}</div>
+                <div style="font-size:0.65rem;color:#888;font-family:'DM Mono',monospace;">
+                  ${objetivas.length} objetiva(s) · ${discursivas.length} discursiva(s) · Hash: ${v.hash}
+                </div>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:0.62rem;color:#888;text-transform:uppercase;letter-spacing:.05em;">Gabarito</div>
+              <div style="font-family:'DM Mono',monospace;font-size:0.75rem;font-weight:700;color:#333;letter-spacing:.1em;">${v.gabarito || '—'}</div>
+            </div>
+          </div>
+          ${gradeHtml}
+          ${discHtml}
+        </div>`;
+    }).join('');
+
+    return `
+      <div style="margin-bottom:28px;break-inside:avoid;page-break-inside:avoid;">
+        <div style="background:#1a1a1a;color:#fff;padding:10px 16px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:1rem;font-weight:700;font-family:'DM Serif Display',Georgia,serif;">${p.titulo}</div>
+            <div style="font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;margin-top:2px;">${p.codigo} · ${versoes.length} versão(ões) · Valor/questão: ${p.valor.toFixed(1)} pt</div>
+          </div>
+          <div style="font-size:0.7rem;color:#ccc;">🗝 Gabarito Oficial</div>
+        </div>
+        <div style="border:1.2px solid #1a1a1a;border-top:none;border-radius:0 0 8px 8px;padding:12px 14px;">
+          ${versoesHtml}
+        </div>
+      </div>`;
+  }).join('');
+
+  const dataHoje = new Date().toLocaleDateString('pt-BR');
+  const html = `
+    <div style="margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #333;display:flex;align-items:flex-end;justify-content:space-between;">
+      <div>
+        <h1 style="font-size:1.4rem;font-family:'DM Serif Display',Georgia,serif;margin-bottom:2px;">Gabarito — Uso Exclusivo do Professor</h1>
+        <p style="font-size:0.72rem;color:#888;font-family:'DM Mono',monospace;">ProvaSystem · Gerado em ${dataHoje} · CONFIDENCIAL</p>
+      </div>
+      <div style="text-align:right;font-size:0.7rem;color:#888;">
+        ${grupos.length} prova(s) · ${grupos.reduce((s,g)=>s+g.versoes.length,0)} versão(ões)
+      </div>
+    </div>
+    ${blocos}
+    <div style="margin-top:24px;border-top:1px solid #ccc;padding-top:10px;display:flex;justify-content:space-between;font-size:0.65rem;color:#aaa;font-family:'DM Mono',monospace;">
+      <span>ProvaSystem — Documento restrito ao professor</span>
+      <span>${dataHoje}</span>
+    </div>`;
+
+  const win = window.open('', '_blank', 'width=860,height=700');
+  win.document.open('text/html', 'replace');
+  win.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Gabarito — ProvaSystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; color: #111; background: white; padding: 24px; font-size: 0.88rem; }
+  .no-print { display: flex; gap: 10px; justify-content: space-between; align-items: center;
+    margin-bottom: 18px; padding-bottom: 14px; border-bottom: 2px dashed #ccc; flex-wrap: wrap; }
+  .no-print button { padding: 8px 20px; border-radius: 6px; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600; }
+  .btn-print { background: #e8c547; color: #1a1a10; }
+  .btn-close  { background: #eee; color: #333; }
+  @media print {
+    @page { margin: 12mm 12mm 12mm 12mm; size: A4; }
+    body { padding: 0; }
+    .no-print { display: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="no-print">
+    <span style="font-size:0.78rem;color:#888;font-family:'DM Mono',monospace;">🗝 Gabarito — uso exclusivo do professor</span>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-close" onclick="window.close()">✕ Fechar</button>
+      <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+  ${html}
+</body>
+</html>`);
+  win.document.close();
 }
 
 function exportarBancoJSON() {
@@ -2827,6 +3856,13 @@ function abrirImpressao() {
   if (!val) { toast('Selecione uma versão!', 'err'); return; }
   const [provaId, versao] = val.split('|');
   imprimirVersao(provaId, versao);
+}
+
+function abrirImpressaoFolha() {
+  const val = document.getElementById('exp-prova-sel').value;
+  if (!val) { toast('Selecione uma versão!', 'err'); return; }
+  const [provaId, versao] = val.split('|');
+  imprimirFolhaResposta(provaId, versao);
 }
 
 function downloadBlob(content, filename, type) {
