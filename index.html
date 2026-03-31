@@ -2345,6 +2345,7 @@ function salvarQuestao() {
   renderBanco();
   updateDisciplinaFilter();
   updateDbCount();
+  updateMontagem();
 }
 
 function excluirQuestao(id) {
@@ -2507,6 +2508,8 @@ function updateMontagem() {
         ${tipoBadge}
         <span class="badge badge-a">${x.disciplina}</span>
         ${x.desenho ? '<span class="q-has-img">✏️</span>' : ''}
+        <button class="btn btn-secondary btn-sm" onclick="viewQuestao('${x.id}')" style="margin-left:auto;padding:3px 10px;font-size:0.72rem;">👁 Ver</button>
+        <button class="btn btn-secondary btn-sm" onclick="openModalQuestao('${x.id}')" style="padding:3px 10px;font-size:0.72rem;">✏️ Editar</button>
       </div>
       <div class="q-enunciado">${x.enunciado.slice(0,120)}${x.enunciado.length > 120 ? '…' : ''}</div>
     </div>`;
